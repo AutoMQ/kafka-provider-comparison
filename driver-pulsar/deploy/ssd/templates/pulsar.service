@@ -9,6 +9,7 @@ RestartSec=1s
 Restart=on-failure
 Type=simple
 LimitNOFILE=300000
+Environment="PULSAR_LOG_APPENDER=RollingFile"
 
 [Install]
 WantedBy=multi-user.target

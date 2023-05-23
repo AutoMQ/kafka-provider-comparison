@@ -19,11 +19,9 @@ import io.openmessaging.benchmark.driver.ConsumerCallback;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -41,26 +39,20 @@ public class KafkaBenchmarkConsumer implements BenchmarkConsumer {
     private final ExecutorService executor;
     private final Future<?> consumerTask;
     private volatile boolean closing = false;
-    private boolean autoCommit;
 
     public KafkaBenchmarkConsumer(
-            KafkaConsumer<String, byte[]> consumer,
-            Properties consumerConfig,
-            ConsumerCallback callback) {
-        this(consumer, consumerConfig, callback, 100L);
+            KafkaConsumer<String, byte[]> consumer, boolean autoCommit, ConsumerCallback callback) {
+        this(consumer, autoCommit, callback, 100L);
     }
 
     public KafkaBenchmarkConsumer(
             KafkaConsumer<String, byte[]> consumer,
-            Properties consumerConfig,
+            boolean autoCommit,
             ConsumerCallback callback,
             long pollTimeoutMs) {
         this.consumer = consumer;
         this.executor = Executors.newSingleThreadExecutor();
-        this.autoCommit =
-                Boolean.valueOf(
-                        (String)
-                                consumerConfig.getOrDefault(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false"));
+
         this.consumerTask =
                 this.executor.submit(
                         () -> {
@@ -68,14 +60,12 @@ public class KafkaBenchmarkConsumer implements BenchmarkConsumer {
                                 try {
                                     ConsumerRecords<String, byte[]> records =
                                             consumer.poll(Duration.ofMillis(pollTimeoutMs));
-
                                     Map<TopicPartition, OffsetAndMetadata> offsetMap = new HashMap<>();
                                     for (ConsumerRecord<String, byte[]> record : records) {
                                         callback.messageReceived(record.value(), record.timestamp());
-
                                         offsetMap.put(
                                                 new TopicPartition(record.topic(), record.partition()),
-                                                new OffsetAndMetadata(record.offset() + 1));
+                                                new OffsetAndMetadata(record.offset()));
                                     }
 
                                     if (!autoCommit && !offsetMap.isEmpty()) {

@@ -27,6 +27,9 @@ public class Config {
     public long pollTimeoutMs = 100;
     public PulsarConfig pulsarConfig;
     public String kafkaConfig;
+    public String kafkaProducerConfig;
+    public String kafkaConsumerConfig;
+    public boolean reset;
 
     public Properties getKafkaProperties() {
         if (StringUtils.isEmpty(kafkaConfig)) {

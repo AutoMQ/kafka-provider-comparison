@@ -7,7 +7,6 @@ target
 *.pyc
 *.svg
 core/*.json
-*.json
 *.retry
 *.pem
 *.hcl
@@ -21,3 +20,7 @@ core/*.json
 # IntelliJ artifacts
 .idea/
 *.iml
+
+*.log
+
+.vscode/

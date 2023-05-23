@@ -1,0 +1,59 @@
+14:24:25.216 [main] INFO Benchmark - Using default worker file workers.yaml
+14:24:25.223 [main] INFO Benchmark - Reading workers list from workers.yaml
+14:24:25.267 [main] INFO Benchmark - Starting benchmark with config: {
+  "drivers" : [ "./driver-automq/driver.yaml" ],
+  "workers" : [ "http://10.0.0.232:8080", "http://10.0.1.140:8080" ],
+  "workersFile" : "/opt/benchmark/workers.yaml",
+  "workloads" : [ "./workloads/vs/fast-tail-read-500m.yaml" ],
+  "output" : null
+}
+14:24:25.283 [main] INFO Benchmark - Workloads: {
+  "fast-tail-read-500m" : {
+    "name" : "1-topic-1000-partitions-4kb-4p4c-500m",
+    "topics" : 1,
+    "partitionsPerTopic" : 1000,
+    "partitionsPerTopicList" : null,
+    "randomTopicNames" : true,
+    "keyDistributor" : "NO_KEY",
+    "messageSize" : 4096,
+    "useRandomizedPayloads" : false,
+    "randomBytesRatio" : 0.0,
+    "randomizedPayloadPoolSize" : 0,
+    "payloadFile" : "payload/payload-4Kb.data",
+    "subscriptionsPerTopic" : 1,
+    "producersPerTopic" : 4,
+    "producersPerTopicList" : null,
+    "consumerPerSubscription" : 4,
+    "producerRate" : 128000,
+    "producerRateList" : null,
+    "consumerBacklogSizeGB" : 0,
+    "backlogDrainRatio" : 1.0,
+    "testDurationMinutes" : 1,
+    "warmupDurationMinutes" : 0,
+    "logIntervalMillis" : 1000
+  }
+}
+14:24:25.644 [main] INFO DistributedWorkersEnsemble - Workers list - producers: [http://10.0.0.232:8080,http://10.0.1.140:8080]
+14:24:25.644 [main] INFO DistributedWorkersEnsemble - Workers list - consumers: http://10.0.0.232:8080,http://10.0.1.140:8080
+14:24:25.648 [main] INFO Benchmark - --------------- WORKLOAD : 1-topic-1000-partitions-4kb-4p4c-500m --- DRIVER : AutoMQ---------------
+14:24:25.917 [main] INFO Benchmark - Successfully stopped all workers..
+14:24:25.921 [main] INFO Benchmark - Initialized Kafka benchmark driver with common config: {bootstrap.servers=10.0.0.47:9092}, producer config: {value.serializer=org.apache.kafka.common.serialization.ByteArraySerializer, acks=all, batch.size=65536, bootstrap.servers=10.0.0.47:9092, key.serializer=org.apache.kafka.common.serialization.StringSerializer, linger.ms=1}, consumer config: {key.deserializer=org.apache.kafka.common.serialization.StringDeserializer, value.deserializer=org.apache.kafka.common.serialization.ByteArrayDeserializer, enable.auto.commit=true, bootstrap.servers=10.0.0.47:9092, auto.offset.reset=earliest}, topic config: {min.insync.replicas=2, retention.ms=86400000, flush.messages=1}, replicationFactor: 3
+14:24:25.931 [main] INFO Benchmark - worker has been initialized..
+14:24:25.962 [main] INFO WorkloadGenerator - Created 1 topics in 28.303361 ms
+14:24:25.978 [main] INFO WorkloadGenerator - Created 4 consumers in 14.346863 ms
+14:24:25.996 [main] INFO WorkloadGenerator - Created 4 producers in 18.265323 ms
+14:24:25.996 [main] INFO WorkloadGenerator - Waiting for consumers to be ready
+14:24:26.028 [main] INFO WorkloadGenerator - Waiting for topics to be ready -- Sent: 0, Received: 0
+14:24:28.031 [main] INFO WorkloadGenerator - Waiting for topics to be ready -- Sent: 4, Received: 0
+14:24:30.034 [main] INFO WorkloadGenerator - Waiting for topics to be ready -- Sent: 4, Received: 0
+14:24:32.037 [main] INFO WorkloadGenerator - Waiting for topics to be ready -- Sent: 4, Received: 4
+14:24:32.037 [main] INFO WorkloadGenerator - All consumers are ready
+14:24:32.137 [main] INFO WorkloadGenerator - ----- Starting benchmark traffic (1m)------
+14:24:33.514 [main] INFO WorkloadGenerator - Pub rate 105679.509 msg/s / 412.811 MB/s | Pub err     0.000 err/s | Cons rate 104550.356 msg/s / 408.388 MB/s | Backlog:  1.518 K | Pub Latency (ms) avg: 10.359 - 50%:  4.617 - 99%: 113.525 - 99.9%: 149.409 - Max: 169.106 | Pub Delay Latency (us) avg: 261.910 - 50%: 42.000 - 99%: 9290.000 - 99.9%: 16142.000 - Max: 18267.000 | E2E Latency (ms) avg: 17.590 - 50%:  8.779 - 99%: 139.446 - 99.9%: 270.845 - Max: 291.679
+14:24:34.688 [main] INFO WorkloadGenerator - Pub rate 146411.469 msg/s / 571.920 MB/s | Pub err     0.000 err/s | Cons rate 147218.084 msg/s / 575.071 MB/s | Backlog:  0.552 K | Pub Latency (ms) avg:  8.707 - 50%:  4.281 - 99%: 110.954 - 99.9%: 149.405 - Max: 213.331 | Pub Delay Latency (us) avg: 42.864 - 50%: 30.000 - 99%: 128.000 - 99.9%: 1514.000 - Max: 16123.000 | E2E Latency (ms) avg: 27.632 - 50%:  8.672 - 99%: 346.625 - 99.9%: 509.941 - Max: 572.099
+14:24:35.888 [main] INFO WorkloadGenerator - Pub rate 96014.700 msg/s / 375.057 MB/s | Pub err     0.000 err/s | Cons rate 95662.534 msg/s / 373.682 MB/s | Backlog:  0.975 K | Pub Latency (ms) avg: 139.110 - 50%: 133.338 - 99%: 467.195 - 99.9%: 582.435 - Max: 712.699 | Pub Delay Latency (us) avg: 300.701 - 50%: 39.000 - 99%: 9902.000 - 99.9%: 26670.000 - Max: 39946.000 | E2E Latency (ms) avg: 141.135 - 50%: 135.983 - 99%: 459.949 - 99.9%: 576.903 - Max: 697.467
+14:24:37.033 [main] INFO WorkloadGenerator - Pub rate 97778.408 msg/s / 381.947 MB/s | Pub err     0.000 err/s | Cons rate 98781.570 msg/s / 385.866 MB/s | Backlog:  0.000 K | Pub Latency (ms) avg: 319.720 - 50%: 276.055 - 99%: 897.499 - 99.9%: 1214.319 - Max: 1489.415 | Pub Delay Latency (us) avg: 142233.423 - 50%: 136181.000 - 99%: 321851.000 - 99.9%: 337537.000 - Max: 342979.000 | E2E Latency (ms) avg: 317.813 - 50%: 274.365 - 99%: 895.399 - 99.9%: 1216.279 - Max: 1490.839
+14:24:38.184 [main] INFO WorkloadGenerator - Pub rate 93717.212 msg/s / 366.083 MB/s | Pub err     0.000 err/s | Cons rate 93860.538 msg/s / 366.643 MB/s | Backlog:  0.000 K | Pub Latency (ms) avg: 330.724 - 50%: 287.417 - 99%: 1037.087 - 99.9%: 1491.431 - Max: 1794.095 | Pub Delay Latency (us) avg: 446576.549 - 50%: 446537.000 - 99%: 623463.000 - 99.9%: 641563.000 - Max: 659891.000 | E2E Latency (ms) avg: 328.109 - 50%: 285.359 - 99%: 1030.727 - 99.9%: 1493.447 - Max: 1765.927
+14:24:39.326 [main] INFO WorkloadGenerator - Pub rate 93993.023 msg/s / 367.160 MB/s | Pub err     0.000 err/s | Cons rate 94449.342 msg/s / 368.943 MB/s | Backlog:  0.000 K | Pub Latency (ms) avg: 328.572 - 50%: 295.047 - 99%: 865.267 - 99.9%: 1379.511 - Max: 1751.007 | Pub Delay Latency (us) avg: 753610.157 - 50%: 752183.000 - 99%: 933291.000 - 99.9%: 948263.000 - Max: 965027.000 | E2E Latency (ms) avg: 325.360 - 50%: 292.367 - 99%: 869.459 - 99.9%: 1360.911 - Max: 1761.927
+14:24:40.468 [main] INFO WorkloadGenerator - Pub rate 95110.362 msg/s / 371.525 MB/s | Pub err     0.000 err/s | Cons rate 94784.723 msg/s / 370.253 MB/s | Backlog:  0.000 K | Pub Latency (ms) avg: 324.549 - 50%: 294.103 - 99%: 858.967 - 99.9%: 1229.679 - Max: 1821.135 | Pub Delay Latency (us) avg: 1062843.236 - 50%: 1065039.000 - 99%: 1244623.000 - 99.9%: 1252839.000 - Max: 1262783.000 | E2E Latency (ms) avg: 321.457 - 50%: 291.753 - 99%: 848.827 - 99.9%: 1231.455 - Max: 1796.831
+14:24:41.606 [main] INFO WorkloadGenerator - Pub rate 94713.226 msg/s / 369.974 MB/s | Pub err     0.000 err/s | Cons rate 94082.068 msg/s / 367.508 MB/s | Backlog:  0.240 K | Pub Latency (ms) avg: 325.551 - 50%: 282.111 - 99%: 952.743 - 99.9%: 1376.327 - Max: 1726.695 | Pub Delay Latency (us) avg: 1365443.168 - 50%: 1365359.000 - 99%: 1548807.000 - 99.9%: 1554039.000 - Max: 1554863.000 | E2E Latency (ms) avg: 321.007 - 50%: 277.005 - 99%: 950.791 - 99.9%: 1370.383 - Max: 1726.919

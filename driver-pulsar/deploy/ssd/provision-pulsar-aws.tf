@@ -26,7 +26,7 @@ resource "random_id" "hash" {
 }
 
 variable "key_name" {
-  default     = "pulsar-benchmark-key"
+  default     = "pulsar_benchmark_key"
   description = "Desired name prefix for the AWS key pair"
 }
 
@@ -45,7 +45,7 @@ resource "aws_vpc" "benchmark_vpc" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "Pulsar-Benchmark-VPC-${random_id.hash.hex}"
+    Name = "Pulsar_Benchmark_VPC_${random_id.hash.hex}"
   }
 }
 
@@ -70,7 +70,7 @@ resource "aws_subnet" "benchmark_subnet" {
 }
 
 resource "aws_security_group" "benchmark_security_group" {
-  name   = "terraform-pulsar-${random_id.hash.hex}"
+  name   = "terraform_pulsar_${random_id.hash.hex}"
   vpc_id = aws_vpc.benchmark_vpc.id
 
   # SSH access from anywhere
@@ -112,12 +112,12 @@ resource "aws_security_group" "benchmark_security_group" {
   }
 
   tags = {
-    Name = "Benchmark-Security-Group-${random_id.hash.hex}"
+    Name = "Benchmark_Security_Group_${random_id.hash.hex}"
   }
 }
 
 resource "aws_key_pair" "auth" {
-  key_name   = "${var.key_name}-${random_id.hash.hex}"
+  key_name   = "${var.key_name}_${random_id.hash.hex}"
   public_key = file(var.public_key_path)
 }
 
@@ -131,7 +131,7 @@ resource "aws_instance" "zookeeper" {
   count = var.num_instances["zookeeper"]
 
   tags = {
-    Name = "zk-${count.index}"
+    Name = "zk_${count.index}"
   }
 }
 
@@ -145,7 +145,7 @@ resource "aws_instance" "pulsar" {
   count = var.num_instances["pulsar"]
 
   tags = {
-    Name = "pulsar-${count.index}"
+    Name = "pulsar_${count.index}"
   }
 }
 
@@ -159,7 +159,7 @@ resource "aws_instance" "client" {
   count = var.num_instances["client"]
 
   tags = {
-    Name = "pulsar-client-${count.index}"
+    Name = "pulsar_client_${count.index}"
   }
 }
 
@@ -173,7 +173,7 @@ resource "aws_instance" "prometheus" {
   count = var.num_instances["prometheus"]
 
   tags = {
-    Name = "prometheus-${count.index}"
+    Name = "prometheus_${count.index}"
   }
 }
 
@@ -210,5 +210,5 @@ output "client_ssh_host" {
 }
 
 output "prometheus_host" {
-  value = aws_instance.prometheus.0.public_ip
+  value = var.num_instances["prometheus"] > 0 ? aws_instance.prometheus.0.public_ip: null
 }

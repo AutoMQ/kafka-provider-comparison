@@ -22,17 +22,27 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import io.openmessaging.benchmark.driver.kafka.Config;
 import io.openmessaging.benchmark.worker.DistributedWorkersEnsemble;
 import io.openmessaging.benchmark.worker.HttpWorkerClient;
 import io.openmessaging.benchmark.worker.LocalWorker;
 import io.openmessaging.benchmark.worker.Worker;
 import java.io.File;
+import java.io.StringReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.TreeMap;
+import lombok.SneakyThrows;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +82,11 @@ public class Benchmark {
                 description = "Allocate extra consumer workers when your backlog builds.")
         boolean extraConsumers;
 
+        @Parameter(
+                names = {"-s", "--separate"},
+                description = "Separate producer and consumer workers")
+        boolean separate;
+
         @Parameter(description = "Workloads") // , required = true)
         public List<String> workloads;
 
@@ -80,6 +95,49 @@ public class Benchmark {
                 description = "Output",
                 required = false)
         public String output;
+    }
+
+
+    private static Config config;
+    private static Properties topicProperties;
+    private static Properties producerProperties;
+    private static Properties consumerProperties;
+
+
+    @SneakyThrows
+    private static void printDriverConfigLog(File configurationFile){
+        config = mapper.readValue(configurationFile, Config.class);
+
+        Properties commonProperties = new Properties();
+        commonProperties.load(new StringReader(config.commonConfig));
+
+        producerProperties = new Properties();
+        commonProperties.forEach((key, value) -> producerProperties.put(key, value));
+        producerProperties.load(new StringReader(config.producerConfig));
+        producerProperties.put(
+            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        producerProperties.put(
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
+
+        consumerProperties = new Properties();
+        commonProperties.forEach((key, value) -> consumerProperties.put(key, value));
+        consumerProperties.load(new StringReader(config.consumerConfig));
+        consumerProperties.put(
+            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        consumerProperties.put(
+            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
+
+        topicProperties = new Properties();
+        topicProperties.load(new StringReader(config.topicConfig));
+
+        log.info(
+            "Initialized Kafka benchmark driver with common config: {}, producer config: {},"
+                + " consumer config: {}, topic config: {}, replicationFactor: {}",
+            commonProperties,
+            producerProperties,
+            consumerProperties,
+            topicProperties,
+            config.replicationFactor);
     }
 
     public static void main(String[] args) throws Exception {
@@ -142,7 +200,8 @@ public class Benchmark {
         if (arguments.workers != null && !arguments.workers.isEmpty()) {
             List<Worker> workers =
                     arguments.workers.stream().map(HttpWorkerClient::new).collect(toList());
-            worker = new DistributedWorkersEnsemble(workers, arguments.extraConsumers);
+            worker =
+                    new DistributedWorkersEnsemble(workers, arguments.extraConsumers, arguments.separate);
         } else {
             // Use local worker implementation
             worker = new LocalWorker();
@@ -164,8 +223,12 @@ public class Benchmark {
 
                                     // Stop any left over workload
                                     worker.stopAll();
+                                    log.info("Successfully stopped all workers..");
+
+                                    printDriverConfigLog(new File(driverConfig));
 
                                     worker.initializeDriver(new File(driverConfig));
+                                    log.info("worker has been initialized..");
 
                                     WorkloadGenerator generator =
                                             new WorkloadGenerator(driverConfiguration.name, workload, worker);

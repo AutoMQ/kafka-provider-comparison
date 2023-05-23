@@ -1,0 +1,400 @@
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+- name: Set common facts
+  tags: [always]
+  any_errors_fatal: true
+  hosts: all
+  connection: ssh
+  tasks:
+  - set_fact:
+      # Global configs
+      ## remote path
+      base_store_path: "/data"
+      ## local path to specify AutoMQ package
+      kafka_package: "/tmp/automq-kafka-latest.tgz"
+      kafka_heap_size: "6g"
+      kafka_direct_memory_size: "6g"
+      client_worker_heap_size: "8g"
+      client_bench_heap_size: "4g"
+      ec2_network_bandwidth: "104824045"
+  - set_fact:
+      private_ip: "{{ hostvars[inventory_hostname]['private_ip'] }}"
+      kafka_dir: "{{ base_store_path }}/kafka"
+
+
+- name: General setup for all
+  tags: [prepare]
+  any_errors_fatal: true
+  hosts: all
+  connection: ssh
+  become: true
+  tasks:
+    - name: Update and upgrade apt packages
+      apt:
+        upgrade: yes
+        update_cache: yes
+        cache_valid_time: 86400
+    - name: Install tools
+      apt:
+        pkg:
+          - sysstat
+          - vim
+          - nload
+          - net-tools
+        state: present
+
+
+- name: Prepare Telemetry
+  tags: [prepare]
+  any_errors_fatal: true
+  hosts: telemetry
+  connection: ssh
+  become: true
+  tasks:
+    - name: Install Docker
+      block:
+        - name: Install dependencies
+          apt:
+            pkg:
+              - ca-certificates
+              - curl
+              - gnupg
+            state: present
+        - name: Add Docker official GPG key
+          apt_key:
+            url: https://download.docker.com/linux/ubuntu/gpg
+            state: present
+        - command: dpkg --print-architecture
+          register: dpkg_arch
+        - name: Add Docker apt repository
+          apt_repository:
+            repo: deb [arch={{ dpkg_arch.stdout }}] https://download.docker.com/linux/ubuntu focal stable
+            state: present
+        - name: Install Docker
+          apt:
+            pkg:
+              - docker-ce
+              - docker-ce-cli
+              - containerd.io
+              - docker-compose-plugin
+            state: present
+            update_cache: yes
+
+
+- name: Install Telemetry
+  tags: [install]
+  any_errors_fatal: true
+  hosts: telemetry
+  connection: ssh
+  become: true
+  tasks:
+    - name: Copy Telemetry package
+      synchronize:
+        src: "telemetry/"
+        dest: "/opt/telemetry"
+    - name: Make install script executable
+      file:
+        path: /opt/telemetry/install.sh
+        mode: 0755
+
+
+- name: Start Telemetry
+  tags: [run]
+  any_errors_fatal: true
+  hosts: telemetry
+  connection: ssh
+  become: true
+  tasks:
+    - name: Start Telemetry
+      shell: ./install.sh start
+      args:
+        chdir: /opt/telemetry
+        executable: /bin/bash
+
+
+- name: Format and mount disks for Kafka hosts
+  tags: [prepare]
+  any_errors_fatal: true
+  hosts: [server, broker]
+  connection: ssh
+  become: true
+  tasks:
+    - name: Install dependencies
+      apt:
+        pkg:
+          - tuned
+        state: present
+    - command: >
+        tuned-adm profile latency-performance
+
+    - name: Increase hard file descriptor limit
+      pam_limits:
+        domain: '*'
+        limit_type: 'hard'
+        limit_item: nofile
+        value: 500000
+    - name: Increase soft file descriptor limit
+      pam_limits:
+        domain: '*'
+        limit_type: 'soft'
+        limit_item: nofile
+        value: 500000
+    - name: Enable pam_limits.so
+      lineinfile:
+        path: /etc/pam.d/login
+        insertafter: EOF
+        line: 'session required pam_limits.so'
+    - name: set vm.max_map_count
+      sysctl:
+        name: vm.max_map_count
+        value: '262144'
+        state: present
+        reload: yes
+    - name: Reboot the machine with all defaults
+      reboot:
+
+
+- name: Prepare Kafka servers and brokers
+  tags: [prepare]
+  any_errors_fatal: true
+  hosts: [server, broker]
+  connection: ssh
+  become: true
+  tasks:
+    - name: Set Kafka facts
+      tags: always
+      block:
+        - set_fact:
+            cloud_provider: "{{ hostvars[inventory_hostname]['cloud_provider'] }}"
+            s3_endpoint: "{{ hostvars[inventory_hostname]['s3_endpoint'] }}"
+            s3_region: "{{ hostvars[inventory_hostname]['s3_region'] }}"
+            s3_bucket: "{{ hostvars[inventory_hostname]['s3_bucket'] }}"
+            kafka_wal_path: "{{ hostvars[inventory_hostname]['data_volume'] }}"
+            kafka_wal_iops: "{{ hostvars[inventory_hostname]['data_volume_iops'] }}"
+            kafka_cluster_id: "{{ hostvars[inventory_hostname]['cluster_id'] }}"
+            kafka_access_key: "{{ hostvars[inventory_hostname]['access_key'] }}"
+            kafka_secret_key: "{{ hostvars[inventory_hostname]['secret_key'] }}"
+            kafka_role_name: "{{ hostvars[inventory_hostname]['role_name'] }}"
+
+            node_id: "{{ hostvars[inventory_hostname]['kafka_id'] }}"
+            server_ids: "{{ groups.get('server') | map('extract', hostvars, 'kafka_id') | list }}"
+            server_addrs: "{{ groups.get('server') | map('extract', hostvars, 'private_ip') | map('regex_replace', '^(.*)$', '\\1:9093') | list }}"
+
+            telemetry_ip: "{{ groups.get('telemetry') | map('extract', hostvars, 'private_ip') | first | default('') }}"
+        - set_fact:
+            quorum_servers: "{{ server_ids | zip(server_addrs) | map('join', '@') | join(',') }}"
+
+    - name: Install dependencies
+      apt:
+        pkg:
+          - openjdk-17-jdk
+        state: present
+
+
+- name: Install Kafka
+  tags: [install]
+  any_errors_fatal: true
+  hosts: [server, broker]
+  connection: ssh
+  become: true
+  tasks:
+    # recreate kafka dir
+    - file: path={{ kafka_dir }} state=absent
+    - file: path={{ kafka_dir }} state=directory
+    - name: Copy Kafka package
+      unarchive:
+        src: "{{ kafka_package }}"
+        dest: "{{ kafka_dir }}"
+        extra_opts: ["--strip-components=1"]
+
+
+- name: Setup Kafka servers
+  tags: [run]
+  any_errors_fatal: true
+  hosts: [server]
+  connection: ssh
+  become: true
+  tasks:
+  - template:
+      src: "templates/server.properties"
+      dest: "{{ kafka_dir }}/config/kraft/server.properties"
+  - template:
+      src: "templates/server.service"
+      dest: "/etc/systemd/system/server.service"
+  - name: Format Log Directories
+    shell: bin/kafka-storage.sh format --cluster-id {{ kafka_cluster_id }} --config config/kraft/server.properties --ignore-formatted
+    args:
+      chdir: "{{ kafka_dir }}"
+  - name: Start Kafka server
+    systemd:
+      state: restarted
+      daemon_reload: yes
+      name: "server"
+  - name: Wait Kafka server to be active
+    service_facts:
+    register: server_service
+    until: server_service.ansible_facts.services['server.service'].state == 'running'
+    retries: 10
+    delay: 5
+
+- name: Setup Kafka brokers
+  tags: [run]
+  any_errors_fatal: true
+  hosts: [broker]
+  connection: ssh
+  become: true
+  tasks:
+  - template:
+      src: "templates/broker.properties"
+      dest: "{{ kafka_dir }}/config/kraft/broker.properties"
+  - template:
+      src: "templates/broker.service"
+      dest: "/etc/systemd/system/broker.service"
+  - name: Format Log Directories
+    shell: bin/kafka-storage.sh format --cluster-id {{ kafka_cluster_id }} --config config/kraft/broker.properties --ignore-formatted
+    args:
+      chdir: "{{ kafka_dir }}"
+  - name: Start Kafka broker
+    systemd:
+      state: restarted
+      daemon_reload: yes
+      name: "broker"
+  - name: Wait Kafka broker to be active
+    service_facts:
+    register: broker_service
+    until: broker_service.ansible_facts.services['broker.service'].state == 'running'
+    retries: 10
+    delay: 5
+
+
+- name: Prepare Benchmark client
+  tags: [prepare]
+  any_errors_fatal: true
+  hosts: [client]
+  connection: ssh
+  become: true
+  tasks:
+    - name: Install dependencies
+      apt:
+        pkg:
+          - chrony
+          - openjdk-17-jdk
+          - tuned
+        state: present
+
+
+- name: Setup Benchmark client
+  tags: [run]
+  any_errors_fatal: true
+  hosts: [client]
+  connection: ssh
+  become: true
+  tasks:
+    - name: Set up chronyd
+      template:
+        src: "templates/chrony.conf"
+        dest: "/etc/chrony.conf"
+    - systemd:
+        state: restarted
+        daemon_reload: yes
+        name: "chronyd"
+    - name: Wait chronyd to be active
+      service_facts:
+      register: chronyd_service
+      until: chronyd_service.ansible_facts.services['chronyd.service'].state in ['running', 'active']
+      retries: 10
+      delay: 5
+
+    - name: Set facts
+      tags: [always]
+      set_fact:
+        broker_servers: "{{ groups.get('server') | map('extract', hostvars, ['private_ip']) | map('regex_replace', '^(.*)$', '\\1:9092') | join(',') }}"
+
+    - file: path=/opt/benchmark state=absent
+      tags: [client-code]
+    - name: Copy benchmark code
+      unarchive:
+        src: ../../../package/target/openmessaging-benchmark-0.0.1-SNAPSHOT-bin.tar.gz
+        dest: /opt
+      tags: [client-code]
+    - shell: mv /opt/openmessaging-benchmark-0.0.1-SNAPSHOT /opt/benchmark
+      tags: [client-code]
+    - shell: tuned-adm profile latency-performance
+
+    - name: Get list of driver config files
+      raw: ls -1 /opt/benchmark/driver-automq/*.yaml
+      register: drivers_list
+      tags: [client-code]
+    - name: Configure Bootstrap Servers
+      lineinfile:
+        dest: '{{ item }}'
+        regexp: '^  bootstrap.servers='
+        line: '  bootstrap.servers={{ broker_servers }}'
+      with_items: '{{ drivers_list.stdout_lines }}'
+      tags: [client-code]
+
+    - name: Configure memory
+      lineinfile:
+        dest: /opt/benchmark/bin/benchmark-worker
+        regexp: '^JVM_MEM='
+        line: 'JVM_MEM="-Xms{{ client_worker_heap_size }} -Xmx{{ client_worker_heap_size }} -XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:+ParallelRefProcEnabled -XX:+DoEscapeAnalysis -XX:ParallelGCThreads=12 -XX:ConcGCThreads=12 -XX:+DisableExplicitGC -XX:-ResizePLAB"'
+      tags: [client-code]
+    - name: Configure memory
+      lineinfile:
+        dest: /opt/benchmark/bin/benchmark
+        regexp: '^JVM_MEM='
+        line: 'JVM_MEM="-Xmx{{ client_bench_heap_size }}"'
+      tags: [client-code]
+    - template:
+        src: "templates/workers.yaml"
+        dest: "/opt/benchmark/workers.yaml"
+      tags: [client-code]
+    - name: Install benchmark systemd service
+      template:
+        src: "templates/benchmark-worker.service"
+        dest: "/etc/systemd/system/benchmark-worker.service"
+      tags: [client-code]
+    - systemd:
+        state: restarted
+        daemon_reload: yes
+        name: "benchmark-worker"
+      tags: [client-code]
+    - name: Wait benchmark worker to be active
+      service_facts:
+      register: benchmark_worker_service
+      until: benchmark_worker_service.ansible_facts.services['benchmark-worker.service'].state == 'running'
+      retries: 10
+      delay: 5
+      tags: [client-code]
+
+
+- name:  Hosts addresses
+  tags: [always]
+  any_errors_fatal: true
+  hosts: localhost
+  become: false
+  tasks:
+    - debug:
+        msg: "Kafka servers {{ item }}"
+      with_items: "{{ groups['server'] }}"
+    - debug:
+        msg: "Kafka brokers {{ item }}"
+      with_items: "{{ groups['broker'] }}"
+    - debug:
+        msg: "Benchmark clients {{ item }}"
+      with_items: "{{ groups['client'] }}"
+    - debug:
+        msg: "Grafana: http://{{ item }}:3000"
+      with_items: "{{ groups['telemetry'] }}"

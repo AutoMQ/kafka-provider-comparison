@@ -14,17 +14,17 @@
 #
 
 if [ -d "./lib" ]; then
-        CLASSPATH=$CLASSPATH:lib/*
+    CLASSPATH=$CLASSPATH:lib/*
 else
     CLASSPATH=benchmark-framework/target/classes:`cat benchmark-framework/target/classpath.txt`
 fi
 
 if [ -z "$HEAP_OPTS" ]
 then
-    HEAP_OPTS="-Xms4G -Xmx4G"
+    HEAP_OPTS="-Xms4G -Xmx8G"
 fi
 
 JVM_MEM="${HEAP_OPTS} -XX:+UseG1GC"
 JVM_GC_LOG=" -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime  -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=64m  -Xloggc:/dev/shm/benchmark-client-gc_%p.log"
 
-exec java -server -cp $CLASSPATH $JVM_MEM io.openmessaging.benchmark.worker.BenchmarkWorker $*
+exec java -server $KAFKA_JMX_OPTS -cp $CLASSPATH $JVM_MEM $KAFKA_OPTS io.openmessaging.benchmark.worker.BenchmarkWorker $*

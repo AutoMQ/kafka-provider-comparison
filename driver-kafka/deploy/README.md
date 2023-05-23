@@ -1,8 +1,9 @@
 # Kafka Deployments
 
-There are two types of deployment found under ssd-deployment and hdd-deployment folders:
+There are three types of deployment found under ssd-deployment and hdd-deployment folders:
 
 - SSD with the i3 instance type that has fast NVMe drives as local instance stores
+- SSD with the i3 instance type that has fast NVMe drives as local instance stores, in Kraft mode
 - HDD with the d2 instance type that has fast HDD sequential IO drives as local instance stores
 
 Customize the instance types in the terraform.tfvars.

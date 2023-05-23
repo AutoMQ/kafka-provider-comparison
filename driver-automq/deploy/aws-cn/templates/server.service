@@ -1,0 +1,20 @@
+[Unit]
+Description=Kafka Mixed server(Broker + Controller)
+After=network.target
+
+[Service]
+ExecStart={{ kafka_dir }}/bin/kafka-server-start.sh config/kraft/server.properties
+Environment='KAFKA_OPTS=-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath={{ kafka_dir }}'
+Environment='KAFKA_HEAP_OPTS=-Xms{{ kafka_heap_size }} -Xmx{{ kafka_heap_size }} -XX:MaxDirectMemorySize={{ kafka_direct_memory_size }} -XX:MetaspaceSize=96m'
+Environment='KAFKA_JVM_PERFORMANCE_OPTS=-server -XX:+UseZGC -XX:ZCollectionInterval=5'
+Environment='KAFKA_S3_ACCESS_KEY={{ kafka_access_key }}'
+Environment='KAFKA_S3_SECRET_KEY={{ kafka_secret_key }}'
+WorkingDirectory={{ kafka_dir }}
+RestartSec=1s
+Restart=on-failure
+Type=simple
+LimitNOFILE=300000
+KillSignal=SIGKILL
+
+[Install]
+WantedBy=multi-user.target

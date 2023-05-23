@@ -31,17 +31,22 @@ import io.openmessaging.benchmark.driver.pulsar.PulsarBenchmarkProducer;
 import io.streamnative.pulsar.handlers.kop.KafkaPayloadProcessor;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.bookkeeper.stats.StatsLogger;
 import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.DeleteTopicsResult;
+import org.apache.kafka.clients.admin.ListTopicsResult;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -71,8 +76,8 @@ public class KopBenchmarkDriver implements BenchmarkDriver {
 
     private Config config;
     private AdminClient admin;
-    private Properties producerProperties;
-    private Properties consumerProperties;
+    private Properties kafkaProducerProperties;
+    private Properties kafkaConsumerProperties;
     private PulsarClient client = null;
     private ProducerBuilder<byte[]> producerBuilder = null;
     private ConsumerBuilder<ByteBuffer> consumerBuilder = null;
@@ -84,18 +89,22 @@ public class KopBenchmarkDriver implements BenchmarkDriver {
     @Override
     public void initialize(File configurationFile, StatsLogger statsLogger) throws IOException {
         config = loadConfig(configurationFile);
-        final Properties commonProperties = config.getKafkaProperties();
-        admin = AdminClient.create(commonProperties);
+        final Properties kafkaCommonProperties = config.getKafkaProperties();
+        admin = AdminClient.create(kafkaCommonProperties);
 
-        producerProperties = new Properties();
-        commonProperties.forEach(producerProperties::put);
-        producerProperties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        producerProperties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
+        kafkaProducerProperties = new Properties();
+        kafkaProducerProperties.putAll(kafkaCommonProperties);
+        kafkaProducerProperties.load(new StringReader(config.kafkaProducerConfig));
+        kafkaProducerProperties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        kafkaProducerProperties.put(
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
 
-        consumerProperties = new Properties();
-        commonProperties.forEach(consumerProperties::put);
-        consumerProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        consumerProperties.put(
+        kafkaConsumerProperties = new Properties();
+        kafkaConsumerProperties.putAll(kafkaCommonProperties);
+        kafkaConsumerProperties.load(new StringReader(config.kafkaConsumerConfig));
+        kafkaConsumerProperties.put(
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        kafkaConsumerProperties.put(
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
 
         final PulsarConfig pulsarConfig = config.pulsarConfig;
@@ -119,6 +128,22 @@ public class KopBenchmarkDriver implements BenchmarkDriver {
                             .receiverQueueSize(pulsarConfig.receiverQueueSize)
                             .maxTotalReceiverQueueSizeAcrossPartitions(
                                     pulsarConfig.maxTotalReceiverQueueSizeAcrossPartitions);
+        }
+
+        if (config.reset) {
+            // List existing topics
+            ListTopicsResult result = admin.listTopics();
+            try {
+                Set<String> topics = result.names().get();
+                // Delete all existing topics
+                DeleteTopicsResult deletes = admin.deleteTopics(topics);
+                deletes.all().get();
+            } catch (ExecutionException ignored) {
+                // We ignore the exception since multiple workers deleting topics at the same time will lead
+                // to ExecutionExceptions here.
+            } catch (InterruptedException e) {
+                throw new IOException(e);
+            }
         }
     }
 
@@ -150,7 +175,7 @@ public class KopBenchmarkDriver implements BenchmarkDriver {
     public CompletableFuture<BenchmarkProducer> createProducer(String topic) {
         if (config.producerType.equals(ClientType.KAFKA)) {
             final BenchmarkProducer producer =
-                    new KafkaBenchmarkProducer(new KafkaProducer<>(producerProperties), topic);
+                    new KafkaBenchmarkProducer(new KafkaProducer<>(kafkaProducerProperties), topic);
             producers.add(producer);
             return CompletableFuture.completedFuture(producer);
         } else if (config.consumerType.equals(ClientType.PULSAR)) {
@@ -170,14 +195,20 @@ public class KopBenchmarkDriver implements BenchmarkDriver {
             String topic, String subscriptionName, ConsumerCallback consumerCallback) {
         if (config.consumerType.equals(ClientType.KAFKA)) {
             final Properties properties = new Properties();
-            consumerProperties.forEach(properties::put);
+            kafkaConsumerProperties.forEach(properties::put);
             properties.put(ConsumerConfig.GROUP_ID_CONFIG, subscriptionName);
             properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+            boolean autoCommit =
+                    Boolean.parseBoolean(
+                            (String)
+                                    kafkaConsumerProperties.getOrDefault(
+                                            ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false"));
+
             final KafkaConsumer<String, byte[]> kafkaConsumer = new KafkaConsumer<>(properties);
             kafkaConsumer.subscribe(Collections.singleton(topic));
             final BenchmarkConsumer consumer =
                     new KafkaBenchmarkConsumer(
-                            kafkaConsumer, properties, consumerCallback, config.pollTimeoutMs);
+                            kafkaConsumer, autoCommit, consumerCallback, config.pollTimeoutMs);
             consumers.add(consumer);
             return CompletableFuture.completedFuture(consumer);
         } else if (config.consumerType.equals(ClientType.PULSAR)) {

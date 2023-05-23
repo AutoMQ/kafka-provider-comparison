@@ -30,6 +30,7 @@ public final class UniformRateLimiter {
     private static final AtomicLongFieldUpdater<UniformRateLimiter> START_UPDATER =
             AtomicLongFieldUpdater.newUpdater(UniformRateLimiter.class, "start");
     private static final double ONE_SEC_IN_NS = SECONDS.toNanos(1);
+    private static final long MAX_V_TIME_BACK_SHIFT_SEC = 10;
     private volatile long start = Long.MIN_VALUE;
     private volatile long virtualTime;
     private final double opsPerSec;
@@ -70,7 +71,16 @@ public final class UniformRateLimiter {
                 assert start != Long.MIN_VALUE;
             }
         }
-        return start + currOpIndex * intervalNs;
+        long intendedTime = start + currOpIndex * intervalNs;
+        long now = nanoClock.get();
+        // If we are behind schedule too much, update V_TIME
+        if (now > intendedTime + MAX_V_TIME_BACK_SHIFT_SEC * ONE_SEC_IN_NS) {
+            long newVTime = (now - start) / intervalNs;
+            // no need to CAS, updated by multiple threads is acceptable
+            V_TIME_UPDATER.set(this, newVTime + 1);
+            intendedTime = start + newVTime * intervalNs;
+        }
+        return intendedTime;
     }
 
     public static void uninterruptibleSleepNs(final long intendedTime) {

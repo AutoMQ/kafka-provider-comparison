@@ -46,6 +46,7 @@
         <module>driver-pravega</module>
         <module>driver-pulsar</module>
         <module>driver-kafka</module>
+        <module>driver-automq</module>
         <module>driver-rabbitmq</module>
         <module>driver-artemis</module>
         <module>driver-bookkeeper</module>
@@ -69,7 +70,7 @@
         <bookkeeper.version>4.14.4</bookkeeper.version>
         <checkstyle.version>10.3.3</checkstyle.version>
         <commons.lang3.version>3.12.0</commons.lang3.version>
-        <log4j.version>2.17.1</log4j.version>
+        <log4j.version>2.20.0</log4j.version>
         <lombok.version>1.18.24</lombok.version>
         <jackson.version>2.13.2</jackson.version>
         <jcommander.version>1.48</jcommander.version>
@@ -129,6 +130,11 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons.lang3.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
@@ -202,6 +208,9 @@
                         <includes>
                             <include>**/*.md</include>
                         </includes>
+                        <excludes>
+                            <exclude>**/telemetry/README.md</exclude>
+                        </excludes>
                         <flexmark/>
                     </markdown>
                     <formats>
@@ -257,8 +266,13 @@
                         <exclude>NOTICE</exclude>
                         <exclude>payload/**</exclude>
                         <exclude>**/*.pyc</exclude>
+                        <exclude>**/*.json</exclude>
                         <exclude>**/.pydevproject</exclude>
                         <exclude>.github/**</exclude>
+                        <exclude>driver-redpanda/**</exclude>
+                        <exclude>**/result-*/**</exclude>
+                        <exclude>**/amq-install/**</exclude>
+                        <exclude>**/telemetry/**</exclude>
                     </excludes>
                     <mapping>
                         <benchmark>SCRIPT_STYLE</benchmark>
@@ -266,6 +280,7 @@
                         <conf>SCRIPT_STYLE</conf>
                         <yaml>SCRIPT_STYLE</yaml>
                         <md>XML_STYLE</md>
+                        <py>SCRIPT_STYLE</py>
                         <lombok.config>SCRIPT_STYLE</lombok.config>
                         <puml>APOSTROPHE_STYLE</puml>
                     </mapping>

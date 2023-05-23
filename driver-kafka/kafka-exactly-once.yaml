@@ -12,12 +12,12 @@
 # limitations under the License.
 #
 
-
 name: Kafka-exactly-once
 driverClass: io.openmessaging.benchmark.driver.kafka.KafkaBenchmarkDriver
 
 # Kafka client-specific configuration
 replicationFactor: 3
+reset: true
 
 topicConfig: |
   min.insync.replicas=2

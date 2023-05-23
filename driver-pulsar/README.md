@@ -63,3 +63,12 @@ TF_STATE=. ansible-playbook \
   restart-brokers.yaml
 ```
 
+### Run KOP deployment
+
+```bash
+TF_STATE=. ansible-playbook \
+  --user ubuntu \
+  --inventory `which terraform-inventory` \
+  deploy.yaml -e "kop_on=true"
+```
+

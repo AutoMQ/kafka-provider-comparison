@@ -31,9 +31,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.bookkeeper.stats.StatsLogger;
 import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.DeleteTopicsResult;
+import org.apache.kafka.clients.admin.ListTopicsResult;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -43,6 +48,7 @@ import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
+@Slf4j
 public class KafkaBenchmarkDriver implements BenchmarkDriver {
 
     private Config config;
@@ -83,6 +89,33 @@ public class KafkaBenchmarkDriver implements BenchmarkDriver {
         topicProperties.load(new StringReader(config.topicConfig));
 
         admin = AdminClient.create(commonProperties);
+
+        log.info(
+                "Initialized Kafka benchmark driver with common config: {}, producer config: {},"
+                        + " consumer config: {}, topic config: {}, replicationFactor: {}",
+                commonProperties,
+                producerProperties,
+                consumerProperties,
+                topicProperties,
+                config.replicationFactor);
+
+        if (config.reset) {
+            // List existing topics
+            ListTopicsResult result = admin.listTopics();
+            try {
+                Set<String> topics = result.names().get();
+                // filter out internal topics
+                topics.removeIf(topic -> topic.startsWith("__"));
+                // Delete all existing topics
+                DeleteTopicsResult deletes = admin.deleteTopics(topics);
+                deletes.all().get();
+            } catch (ExecutionException ignored) {
+                // We ignore the exception since multiple workers deleting topics at the same time will lead
+                // to ExecutionExceptions here.
+            } catch (InterruptedException e) {
+                throw new IOException(e);
+            }
+        }
     }
 
     @Override
@@ -126,13 +159,25 @@ public class KafkaBenchmarkDriver implements BenchmarkDriver {
         Properties properties = new Properties();
         consumerProperties.forEach((key, value) -> properties.put(key, value));
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, subscriptionName);
-        KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(properties);
+        boolean autoCommit =
+                Boolean.parseBoolean(
+                        (String)
+                                consumerProperties.getOrDefault(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false"));
+
+        KafkaConsumer<String, byte[]> kafkaConsumer = new KafkaConsumer<>(properties);
         try {
-            consumer.subscribe(Arrays.asList(topic));
-            return CompletableFuture.completedFuture(
-                    new KafkaBenchmarkConsumer(consumer, consumerProperties, consumerCallback));
+            // Subscribe
+            kafkaConsumer.subscribe(Arrays.asList(topic));
+
+            // Start polling
+            BenchmarkConsumer benchmarkConsumer =
+                    new KafkaBenchmarkConsumer(kafkaConsumer, autoCommit, consumerCallback);
+
+            // Add to consumer list to close later
+            consumers.add(benchmarkConsumer);
+            return CompletableFuture.completedFuture(benchmarkConsumer);
         } catch (Throwable t) {
-            consumer.close();
+            kafkaConsumer.close();
             CompletableFuture<BenchmarkConsumer> future = new CompletableFuture<>();
             future.completeExceptionally(t);
             return future;

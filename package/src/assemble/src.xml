@@ -50,6 +50,7 @@
 							<exclude>**/terraform.tfstate.backup</exclude>
 							<exclude>**/*.retry</exclude>
 							<exclude>**/.settings/**</exclude>
+							<exclude>**/results/**</exclude>
 						</excludes>
 					</fileSet>
 				</fileSets>

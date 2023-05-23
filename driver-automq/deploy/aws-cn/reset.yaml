@@ -1,0 +1,171 @@
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+- name: Set common facts
+  tags: [always]
+  hosts: all
+  connection: ssh
+  tasks:
+  - set_fact:
+      kafka_cluster_id: "{{ hostvars[inventory_hostname]['cluster_id'] }}"
+      base_store_path: "/data"
+
+
+- name: Reboot
+  tags: [never]
+  hosts: all
+  connection: ssh
+  become: true
+  tasks:
+
+
+- name: Stop client
+  tags: [stop]
+  hosts: client
+  connection: ssh
+  become: true
+  tasks:
+  - name: Stop client
+    systemd:
+      state: stopped
+      name: "benchmark-worker"
+  - name: Wait client to be stopped
+    service_facts:
+    register: benchmark_worker_service
+    until: benchmark_worker_service.ansible_facts.services['benchmark-worker.service'].state in ['stopped', 'inactive']
+    retries: 10
+    delay: 5
+
+
+- name: Stop Kafka broker
+  tags: [stop]
+  hosts: [broker]
+  connection: ssh
+  become: true
+  tasks:
+    - set_fact:
+        kafka_wal_path: "{{ hostvars[inventory_hostname]['data_volume'] }}"
+    - name: Stop broker
+      systemd:
+        state: stopped
+        name: "broker"
+    - name: Wait broker to be stopped
+      service_facts:
+      register: broker_service
+      until: broker_service.ansible_facts.services['broker.service'].state in ['stopped', 'inactive']
+      retries: 10
+      delay: 5
+    - name: Remove data dir
+      file:
+        path: "{{ base_store_path }}/data"
+        state: absent
+    - name: Remove WAL
+      shell: "dd if=/dev/zero of={{ kafka_wal_path }} bs=1M count=1 oflag=direct"
+      ignore_errors: yes
+    - name: Format Log Directories
+      shell: bin/kafka-storage.sh format --cluster-id {{ kafka_cluster_id }} --config config/kraft/broker.properties --ignore-formatted
+      args:
+        chdir: "{{ base_store_path }}/kafka"
+    - name: Clean cache
+      shell: sync; echo 3 > /proc/sys/vm/drop_caches
+
+
+- name: Stop Kafka server
+  tags: [stop]
+  hosts: [server]
+  connection: ssh
+  become: true
+  tasks:
+    - set_fact:
+        kafka_wal_path: "{{ hostvars[inventory_hostname]['data_volume'] }}"
+    - name: Stop server
+      systemd:
+        state: stopped
+        name: "server"
+    - name: Wait server to be stopped
+      service_facts:
+      register: server_service
+      until: server_service.ansible_facts.services['server.service'].state in ['stopped', 'inactive']
+      retries: 10
+      delay: 5
+    - name: Remove data dir
+      file:
+        path: "{{ base_store_path }}/data"
+        state: absent
+    - name: Remove WAL
+      shell: "dd if=/dev/zero of={{ kafka_wal_path }} bs=1M count=1 oflag=direct"
+      ignore_errors: yes
+    - name: Format Log Directories
+      shell: bin/kafka-storage.sh format --cluster-id {{ kafka_cluster_id }} --config config/kraft/server.properties --ignore-formatted
+      args:
+        chdir: "{{ base_store_path }}/kafka"
+    - name: Clean cache
+      shell: sync; echo 3 > /proc/sys/vm/drop_caches
+
+
+- name: Start Kafka servers
+  tags: [run]
+  hosts: [server]
+  connection: ssh
+  become: true
+  tasks:
+    - name: Start Kafka server
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        name: "server"
+    - name: Wait Kafka server to be active
+      service_facts:
+      register: server_service
+      until: server_service.ansible_facts.services['server.service'].state == 'running'
+      retries: 10
+      delay: 5
+
+
+- name: Start Kafka brokers
+  tags: [run]
+  hosts: [broker]
+  connection: ssh
+  become: true
+  tasks:
+    - name: Start Kafka broker
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        name: "broker"
+    - name: Wait Kafka broker to be active
+      service_facts:
+      register: broker_service
+      until: broker_service.ansible_facts.services['broker.service'].state == 'running'
+      retries: 10
+      delay: 5
+
+
+- name: Start client
+  tags: [run]
+  hosts: client
+  connection: ssh
+  become: true
+  tasks:
+    - name: Start benchmark worker
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        name: "benchmark-worker"
+    - name: Wait benchmark worker to be active
+      service_facts:
+      register: benchmark_worker_service
+      until: benchmark_worker_service.ansible_facts.services['benchmark-worker.service'].state == 'running'
+      retries: 10
+      delay: 5

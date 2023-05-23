@@ -1,0 +1,60 @@
+Project: main
+
+ Name                                                   Monthly Qty  Unit         Monthly Cost
+
+ aws_instance.client[0]
+ ├─ Instance usage (Linux/UNIX, on-demand, m6i.xlarge)          730  hours             $136.65
+ ├─ EC2 detailed monitoring                                       7  metrics             $1.93
+ └─ root_block_device
+    └─ Storage (general purpose SSD, gp3)                        64  GB                  $4.69
+
+ aws_instance.client[1]
+ ├─ Instance usage (Linux/UNIX, on-demand, m6i.xlarge)          730  hours             $136.65
+ ├─ EC2 detailed monitoring                                       7  metrics             $1.93
+ └─ root_block_device
+    └─ Storage (general purpose SSD, gp3)                        64  GB                  $4.69
+
+ aws_s3_bucket.benchmark_bucket
+ └─ Standard
+    ├─ Storage                                                6,144  GB                $138.22  *
+    ├─ PUT, COPY, POST, LIST requests                           192  1k requests         $0.11  *
+    └─ GET, SELECT, and all other requests                     76.8  1k requests         $0.01  *
+
+ aws_instance.broker[0]
+ ├─ Instance usage (Linux/UNIX, on-demand, r6i.large)           730  hours              $89.03
+ ├─ EC2 detailed monitoring                                       7  metrics             $1.93
+ ├─ root_block_device
+ │  └─ Storage (general purpose SSD, gp3)                        16  GB                  $1.17
+ └─ ebs_block_device[0]
+    └─ Storage (general purpose SSD, gp3)                        10  GB                  $0.73
+
+ aws_instance.broker[1]
+ ├─ Instance usage (Linux/UNIX, on-demand, r6i.large)           730  hours              $89.03
+ ├─ EC2 detailed monitoring                                       7  metrics             $1.93
+ ├─ root_block_device
+ │  └─ Storage (general purpose SSD, gp3)                        16  GB                  $1.17
+ └─ ebs_block_device[0]
+    └─ Storage (general purpose SSD, gp3)                        10  GB                  $0.73
+
+ aws_instance.server[0]
+ ├─ Instance usage (Linux/UNIX, on-demand, r6i.large)           730  hours              $89.03
+ ├─ EC2 detailed monitoring                                       7  metrics             $1.93
+ ├─ root_block_device
+ │  └─ Storage (general purpose SSD, gp3)                        16  GB                  $1.17
+ └─ ebs_block_device[0]
+    └─ Storage (general purpose SSD, gp3)                        10  GB                  $0.73
+
+ OVERALL TOTAL                                                                         $703.52
+
+*Usage costs were estimated by merging infracost-usage.yml and Infracost Cloud settings.
+
+──────────────────────────────────
+15 cloud resources were detected:
+∙ 6 were estimated
+∙ 9 were free
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ Project                                            ┃ Baseline cost ┃ Usage cost* ┃ Total cost ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━╋━━━━━━━━━━━━┫
+┃ main                                               ┃ $565          ┃ $138        ┃ $704       ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━┻━━━━━━━━━━━━┛

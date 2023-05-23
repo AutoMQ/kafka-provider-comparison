@@ -1,0 +1,10 @@
+{
+  "aggregatedEndToEndLatencyAvg" : 303.66536451928164,
+  "aggregatedEndToEndLatency50pct" : 280.465,
+  "aggregatedEndToEndLatency75pct" : 382.105,
+  "aggregatedEndToEndLatency95pct" : 584.491,
+  "aggregatedEndToEndLatency99pct" : 814.623,
+  "aggregatedEndToEndLatency999pct" : 1117.079,
+  "aggregatedEndToEndLatency9999pct" : 1429.383,
+  "aggregatedEndToEndLatencyMax" : 1796.831
+}

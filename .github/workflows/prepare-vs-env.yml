@@ -1,0 +1,197 @@
+name: Prepare Streaming Cluster
+
+on:
+  workflow_dispatch:
+    inputs:
+      cloud_provider:
+        default: aws-cn
+        required: true
+        type: string
+      compared_streaming_provider:
+        default: kafka
+        required: true
+        type: string
+      region:
+        default: cn-northwest-1
+        required: true
+        type: string
+      uninstall:
+        default: false
+        required: true
+        type: boolean
+      execute_benchmark:
+        default: false
+        required: true
+        type: boolean
+
+jobs:
+
+  prepare_automq_env:
+    environment: ${{ inputs.cloud_provider }}
+    name: Prepare AutoMQ Environment
+    runs-on: ubuntu-latest
+    outputs:
+      benchmark_result_json_automq: ${{ steps.shared-automq.outputs.benchmark_result_json_automq }}
+      extracted_data_automq: ${{ steps.shared-automq.outputs.extracted_data_automq }}
+      baseline_cost_automq: ${{ steps.shared-automq.outputs.baseline_cost_automq }}
+      usage_cost_automq: ${{ steps.shared-automq.outputs.usage_cost_automq }}
+      total_cost_automq: ${{ steps.shared-automq.outputs.total_cost_automq }}
+    steps:
+      - name: Hello World
+        run: echo "Hello World"
+      - name: Checkout Benchmark Code
+        uses: actions/checkout@v3
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Execute Shared Steps
+        id: shared-automq
+        uses: ./.github/actions/prepare-vs-shared
+        with:
+          streaming_provider: automq
+          automq_access_key: ${{ secrets.AUTOMQ_ACCESS_KEY }}
+          automq_secret_key: ${{ secrets.AUTOMQ_SECRET_KEY }}
+          tf_backend_bucket: ${{ secrets.TF_BACKEND_BUCKET }}
+          tf_backend_key: ${{ secrets.TF_BACKEND_KEY }}-${{ inputs.cloud_provider }}
+          region: ${{ inputs.region }}
+          cloud_provider: ${{ inputs.cloud_provider }}
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+          infra_cost_api_key: ${{ secrets.INFRA_COST_API_KEY }}
+          uninstall: ${{ inputs.uninstall }}
+          execute_benchmark: ${{ inputs.execute_benchmark }}
+
+
+  prepare_kafka_env:
+    environment: ${{ inputs.cloud_provider }}
+    name: Prepare Kafka Environment
+    runs-on: ubuntu-latest
+    outputs:
+      benchmark_result_json_kafka: ${{ steps.shared-kafka.outputs.benchmark_result_json_kafka }}
+      extracted_data_kafka: ${{ steps.shared-kafka.outputs.extracted_data_kafka }}
+      baseline_cost_kafka: ${{ steps.shared-kafka.outputs.baseline_cost_kafka }}
+      usage_cost_kafka: ${{ steps.shared-kafka.outputs.usage_cost_kafka }}
+      total_cost_kafka: ${{ steps.shared-kafka.outputs.total_cost_kafka }}
+    if: ${{ inputs.compared_streaming_provider == 'kafka' }}
+    steps:
+      - name: Hello World
+        run: echo "Hello World"
+      - name: Checkout Benchmark Code
+        uses: actions/checkout@v3
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Execute Shared Steps
+        id: shared-kafka
+        uses: ./.github/actions/prepare-vs-shared
+        with:
+          streaming_provider: kafka
+          automq_access_key: ${{ secrets.AUTOMQ_ACCESS_KEY }}
+          automq_secret_key: ${{ secrets.AUTOMQ_SECRET_KEY }}
+          tf_backend_bucket: ${{ secrets.TF_BACKEND_BUCKET }}
+          tf_backend_key: ${{ secrets.TF_BACKEND_KEY }}-${{ inputs.cloud_provider }}
+          region: ${{ inputs.region }}
+          cloud_provider: ${{ inputs.cloud_provider }}
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+          infra_cost_api_key: ${{ secrets.INFRA_COST_API_KEY }}
+          uninstall: ${{ inputs.uninstall }}
+          execute_benchmark: ${{ inputs.execute_benchmark }}
+
+
+
+
+  generate_report:
+    name: Generate Report
+    runs-on: ubuntu-latest
+    needs: [ prepare_automq_env, prepare_kafka_env ]
+    steps:
+      - name: Checkout Benchmark Code
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.12.2'
+
+      - name: Install dependencies
+        run: |
+          cd $GITHUB_WORKSPACE/workflow_scripts/js
+          npm install
+
+#      - name: Output Benchmark Result
+#        id: output_benchmark_result
+#        run: |
+#          if [ "${{ inputs.execute_benchmark }}" = "true" ]; then
+#            sudo apt-get install jq
+#            extracted_benchmark_output=$(cat $GITHUB_WORKSPACE/workflow_scripts/bin/debug.json )
+#            echo "Need Use Multi Line Process"
+#            echo "benchmark_result_json_automq<<EOF" >> $GITHUB_OUTPUT
+#            echo "$extracted_benchmark_output" >> $GITHUB_OUTPUT
+#            echo "EOF" >> $GITHUB_OUTPUT
+#            echo "benchmark_result_json_kafka<<EOF" >> $GITHUB_OUTPUT
+#            echo "$extracted_benchmark_output" >> $GITHUB_OUTPUT
+#            echo "EOF" >> $GITHUB_OUTPUT
+#          fi
+#        env:
+#          STREAMING_PROVIDER: ${{ inputs.streaming_provider }}
+#
+#
+#      - name: Extract Information from Benchmark Worker Log
+#        id: extract_final_result
+#        run: |
+#          if [ "${{ inputs.execute_benchmark }}" = "true" ]; then
+#            cat $GITHUB_WORKSPACE/workflow_scripts/bin/debug.output >> /tmp/benchmark-worker.log
+#            python3 workflow_scripts/python/extract_info_from_benchmark.py
+#            extracted_data=$(cat /tmp/extracted_data)
+#            echo $extracted_data
+#
+#            # 使用多行字符串语法来设置环境变量
+#            echo "extracted_data_automq<<EOF_MARKER" >> $GITHUB_OUTPUT
+#            echo "$extracted_data" >> $GITHUB_OUTPUT
+#            echo "EOF_MARKER" >> $GITHUB_OUTPUT
+#
+#            echo "extracted_data_kafka<<EOF_MARKER" >> $GITHUB_OUTPUT
+#            echo "$extracted_data" >> $GITHUB_OUTPUT
+#            echo "EOF_MARKER" >> $GITHUB_OUTPUT
+#          fi
+#        env:
+#          STREAMING_PROVIDER: ${{ inputs.streaming_provider }}
+
+      ##ref: https://stackoverflow.com/questions/77181212/use-composite-action-output-as-step-output
+      - name: Generate Report in Issue
+        if: ${{ inputs.execute_benchmark }}
+        env:
+          BASELINE_COST_AUTOMQ: ${{ needs.prepare_automq_env.outputs.baseline_cost_automq }}
+          USAGE_COST_AUTOMQ: ${{ needs.prepare_automq_env.outputs.usage_cost_automq }}
+          TOTAL_COST_AUTOMQ: ${{ needs.prepare_automq_env.outputs.total_cost_automq }}
+          BASELINE_COST_KAFKA: ${{ needs.prepare_kafka_env.outputs.baseline_cost_kafka }}
+          USAGE_COST_KAFKA: ${{ needs.prepare_kafka_env.outputs.usage_cost_kafka }}
+          TOTAL_COST_KAFKA: ${{ needs.prepare_kafka_env.outputs.total_cost_kafka }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY_NAME: ${{ github.repository }}
+        run: |
+          echo '${{ needs.prepare_automq_env.outputs.benchmark_result_json_automq }}' > $GITHUB_WORKSPACE/workflow_scripts/js/BENCHMARK_RESULT_AUTOMQ.info
+          echo '${{ needs.prepare_kafka_env.outputs.benchmark_result_json_kafka }}' > $GITHUB_WORKSPACE/workflow_scripts/js/BENCHMARK_RESULT_KAFKA.info
+          echo '${{ needs.prepare_automq_env.outputs.extracted_data_automq }}' > $GITHUB_WORKSPACE/workflow_scripts/js/EXTRACTED_DATA_AUTOMQ.info
+          echo '${{ needs.prepare_kafka_env.outputs.extracted_data_kafka }}' > $GITHUB_WORKSPACE/workflow_scripts/js/EXTRACTED_DATA_KAFKA.info
+          
+          export WORKSPACE_HOME=$GITHUB_WORKSPACE
+          
+          echo "BASELINE_COST_AUTOMQ: $BASELINE_COST_AUTOMQ"
+          echo "USAGE_COST_AUTOMQ: $USAGE_COST_AUTOMQ"
+          echo "TOTAL_COST_AUTOMQ: $TOTAL_COST_AUTOMQ"
+          echo "BASELINE_COST_KAFKA: $BASELINE_COST_KAFKA"
+          echo "USAGE_COST_KAFKA: $USAGE_COST_KAFKA"
+          echo "TOTAL_COST_KAFKA: $TOTAL_COST_KAFKA"
+          echo "GITHUB_TOKEN: [REDACTED]"  # 出于安全考虑，这里不打印实际的令牌
+          echo "GITHUB_REPOSITORY_NAME: $GITHUB_REPOSITORY_NAME"
+          cd $GITHUB_WORKSPACE/workflow_scripts/js
+          node $GITHUB_WORKSPACE/workflow_scripts/js/generate_report.js

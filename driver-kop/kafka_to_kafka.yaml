@@ -12,7 +12,7 @@
 # limitations under the License.
 #
 
-name: Kafka producer and Pulsar consumer
+name: Kafka producer and Kafka consumer
 driverClass: io.openmessaging.benchmark.driver.kop.KopBenchmarkDriver
 
 producerType: kafka
@@ -33,7 +33,19 @@ pulsarConfig:
   receiverQueueSize: 1000
 
 # Kafka configs
-kafkaConfig: |
+kafkaCommonConfigConfig: |
   bootstrap.servers=localhost:9092
+
+# reset between tests
+reset: true
+
+kafkaProducerConfig: |
+  acks=all
   linger.ms=1
   batch.size=1048576
+
+kafkaConsumerConfig: |
+  auto.offset.reset=earliest
+  enable.auto.commit=false
+  auto.commit.interval.ms=0
+  max.partition.fetch.bytes=1048576

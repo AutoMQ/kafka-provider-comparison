@@ -1,0 +1,27 @@
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+name: 1024-partitions-4000-rate-4-producer
+
+topics: 1
+partitionsPerTopic: 1024
+messageSize: 131072
+payloadFile: "payload/payload-128Kb.data"
+subscriptionsPerTopic: 1
+consumerPerSubscription: 32
+producersPerTopic: 32
+producerRate: 4000 # 100m: 800, 300m: 2400, 500m: 4000, 700m: 5600, 900m: 7200, 1G: 8192, 1.5G: 12288
+consumerBacklogSizeGB: 0
+warmupDurationMinutes: 1
+testDurationMinutes: 15

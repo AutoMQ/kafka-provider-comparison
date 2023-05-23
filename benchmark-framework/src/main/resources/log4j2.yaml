@@ -15,11 +15,16 @@
 Configuration:
   status: INFO
   name: messaging-benchmark
-  
+
   Appenders:
     Console:
       name: Console
       target: SYSTEM_OUT
+      filters:
+        - ThresholdFilter:
+            level: info
+            onMatch: ACCEPT
+            onMismatch: DENY
       PatternLayout:
         Pattern: "%d{HH:mm:ss.SSS} [%t] %-4level %c{1} - %msg%n"
     RollingFile:
@@ -33,7 +38,7 @@ Configuration:
           size: 100MB
       DefaultRollOverStrategy:
         max: 10
-  Loggers: 
+  Loggers:
     Root:
       level: info
       additivity: false

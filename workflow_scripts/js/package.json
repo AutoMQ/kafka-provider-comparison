@@ -1,0 +1,14 @@
+{
+  "name": "workflow-scripts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "generate_report.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@octokit/rest": "^19.0.7"
+  }
+}

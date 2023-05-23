@@ -29,6 +29,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,7 @@ import org.apache.kafka.common.errors.TopicExistsException;
 @RequiredArgsConstructor
 class KafkaTopicCreator {
     private static final int MAX_BATCH_SIZE = 500;
+    private static final int MAX_RETRIES = 1024;
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private final AdminClient admin;
     private final Map<String, String> topicConfigs;
@@ -49,6 +51,10 @@ class KafkaTopicCreator {
 
     KafkaTopicCreator(AdminClient admin, Map<String, String> topicConfigs, short replicationFactor) {
         this(admin, topicConfigs, replicationFactor, MAX_BATCH_SIZE);
+        log.info(
+                "replicationFactor in KafkaTopicCreator is: {}, topicConfigs are: {}",
+                replicationFactor,
+                topicConfigs);
     }
 
     CompletableFuture<Void> create(List<TopicInfo> topicInfos) {
@@ -68,7 +74,18 @@ class KafkaTopicCreator {
                         SECONDS);
 
         try {
+            int tries = 0;
             while (succeeded.get() < topicInfos.size()) {
+                if (tries > MAX_RETRIES) {
+                    throw new RuntimeException(
+                            "Failed to create topics after "
+                                    + MAX_RETRIES
+                                    + " retries. created: "
+                                    + succeeded.get()
+                                    + " of "
+                                    + topicInfos.size());
+                }
+                AtomicBoolean anyFailed = new AtomicBoolean(false);
                 int batchSize = queue.drainTo(batch, maxBatchSize);
                 if (batchSize > 0) {
                     executeBatch(batch)
@@ -77,11 +94,22 @@ class KafkaTopicCreator {
                                         if (success) {
                                             succeeded.incrementAndGet();
                                         } else {
+                                            anyFailed.set(true);
                                             //noinspection ResultOfMethodCallIgnored
                                             queue.offer(topicInfo);
                                         }
                                     });
                     batch.clear();
+                }
+                if (anyFailed.get()) {
+                    // sleep for a while to avoid too many requests
+                    try {
+                        Thread.sleep(1000);
+                        tries++;
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         } finally {
@@ -94,6 +122,7 @@ class KafkaTopicCreator {
         Map<String, TopicInfo> lookup = batch.stream().collect(toMap(TopicInfo::getTopic, identity()));
 
         List<NewTopic> newTopics = batch.stream().map(this::newTopic).collect(toList());
+        log.info("admin will create topics: {}", newTopics);
 
         return admin.createTopics(newTopics).values().entrySet().stream()
                 .collect(toMap(e -> lookup.get(e.getKey()), e -> isSuccess(e.getValue())));

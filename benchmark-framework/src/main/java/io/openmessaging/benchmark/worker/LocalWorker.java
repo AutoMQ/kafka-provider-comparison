@@ -42,6 +42,7 @@ import io.openmessaging.benchmark.worker.commands.TopicsInfo;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.stats.StatsLogger;
 import org.slf4j.Logger;
@@ -105,11 +105,29 @@ public class LocalWorker implements Worker, ConsumerCallback {
     public List<String> createTopics(TopicsInfo topicsInfo) {
         Timer timer = new Timer();
 
-        List<TopicInfo> topicInfos =
-                IntStream.range(0, topicsInfo.numberOfTopics)
-                        .mapToObj(
-                                i -> new TopicInfo(generateTopicName(i), topicsInfo.numberOfPartitionsPerTopic))
-                        .collect(toList());
+        List<TopicInfo> topicInfos;
+        String topicSuffix = topicsInfo.randomName ? RandomGenerator.getRandomString() : null;
+        if (null == topicsInfo.numberOfPartitionsPerTopicList) {
+            topicInfos = new ArrayList<>();
+            int bound = topicsInfo.numberOfTopics;
+            for (int i = 0; i < bound; i++) {
+                TopicInfo topicInfo =
+                        new TopicInfo(
+                                generateTopicName(i, topicsInfo.numberOfPartitionsPerTopic, topicSuffix),
+                                topicsInfo.numberOfPartitionsPerTopic);
+                topicInfos.add(topicInfo);
+            }
+        } else {
+            if (topicsInfo.numberOfPartitionsPerTopicList.size() != topicsInfo.numberOfTopics) {
+                throw new IllegalArgumentException(
+                        "numberOfPartitionsPerTopicList size must be equal to numberOfTopics");
+            }
+            topicInfos = new ArrayList<>();
+            for (int i = 0; i < topicsInfo.numberOfTopics; i++) {
+                int partitions = topicsInfo.numberOfPartitionsPerTopicList.get(i);
+                topicInfos.add(new TopicInfo(generateTopicName(i, partitions, topicSuffix), partitions));
+            }
+        }
 
         benchmarkDriver.createTopics(topicInfos).join();
 
@@ -119,9 +137,10 @@ public class LocalWorker implements Worker, ConsumerCallback {
         return topics;
     }
 
-    private String generateTopicName(int i) {
+    private String generateTopicName(int i, int p, String suffix) {
         return String.format(
-                "%s-%07d-%s", benchmarkDriver.getTopicNamePrefix(), i, RandomGenerator.getRandomString());
+                "%s-%07d-%04d%s",
+                benchmarkDriver.getTopicNamePrefix(), i, p, suffix == null ? "" : "-" + suffix);
     }
 
     @Override
@@ -252,9 +271,21 @@ public class LocalWorker implements Worker, ConsumerCallback {
         internalMessageReceived(data.remaining(), publishTimestamp);
     }
 
+    /**
+     * This method is called by the consumer when a message is received. Note that publishTimestamp is
+     * in milliseconds, which loses precision in conversion to nanoseconds. Fix it if needed.
+     *
+     * @param size size of the received message
+     * @param publishTimestamp publish timestamp of the received message
+     */
     public void internalMessageReceived(int size, long publishTimestamp) {
-        long now = System.currentTimeMillis();
-        long endToEndLatencyMicros = TimeUnit.MILLISECONDS.toMicros(now - publishTimestamp);
+        long publishTimeNanos = TimeUnit.MILLISECONDS.toNanos(publishTimestamp);
+        // NOTE: PublishTimestamp is expected to be using the wall-clock time across
+        // machines
+        Instant currentTime = Instant.now();
+        long currentTimeNanos =
+                TimeUnit.SECONDS.toNanos(currentTime.getEpochSecond()) + currentTime.getNano();
+        long endToEndLatencyMicros = TimeUnit.NANOSECONDS.toMicros(currentTimeNanos - publishTimeNanos);
         stats.recordMessageReceived(size, endToEndLatencyMicros);
 
         while (consumersArePaused) {

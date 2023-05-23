@@ -1,0 +1,511 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
+- name: Setup common packages on Redhat based systems
+  hosts: all
+  connection: ssh
+  become: true
+  tasks:
+    - name: Remove sysstat
+      package:
+        name:
+          - sysstat
+        state: absent
+    - name: Install packages
+      package:
+        name:
+          - mdadm
+          - xfsprogs
+          - iotop
+          - wget
+          - sysstat
+          - vim
+          - chrony
+          - git
+          - gcc
+          - tuned
+        state: present
+        update_cache: true
+    - name: Install Java Redhat
+      when: ansible_os_family == 'RedHat'
+      package:
+        name:
+          - java-11
+        state: present
+    - name: Install Java on Debian
+      when: ansible_os_family == 'Debian'
+      package:
+        name:
+          - openjdk-11-jdk
+        state: present
+
+- name: set facts about drives
+  hosts: redpanda
+  tasks:
+  - set_fact:
+      device_info: "{{ hostvars[inventory_hostname].ansible_devices }}"
+      nvme_device_ids: "{{ hostvars[inventory_hostname].ansible_devices.keys() | map('regex_search', 'nvme.*') | select('string') | list }}"
+  - set_fact:
+      nvme_devices_for_raid: '{{ (nvme_devices_for_raid | default([])) + ["/dev/" + item] }}'
+    loop: '{{ nvme_device_ids }}'
+    when: device_info[item]["partitions"] | length == 0
+
+- name: Format raid drives if more then 2 drives
+  hosts: redpanda
+  tasks:
+  - block:
+    - name: define mdadm_arrays variable
+      set_fact:
+        mdadm_arrays:
+        - name: md0
+          devices: '{{ nvme_devices_for_raid }}'
+          filesystem: xfs
+          level: 0
+          mountpoint: /mnt/vectorized
+          state: present
+
+    - name: run mdadm
+      include_role:
+        name: mrlesmithjr.mdadm
+    when: nvme_devices_for_raid|length > 1
+
+
+- name: created a non raid disk
+  hosts: redpanda
+  tasks:
+    - block:
+      - name: create xfs file system
+        filesystem:
+          fstype: xfs
+          dev: '{{ nvme_devices_for_raid[0] }}'
+      - name: mount nvme device
+        mount:
+          path: /mnt/vectorized
+          src: '{{ nvme_devices_for_raid[0] }}'
+          fstype: xfs
+          state: mounted
+      when: nvme_devices_for_raid|length == 1
+
+- name: configure the data path
+  hosts: redpanda
+  tasks:
+  - name: data path
+    file:
+      path: /mnt/vectorized/redpanda
+      state: directory
+      owner: root
+      group: root
+      mode: ugo=rwx
+  - name: set premissions
+    file:
+      dest: /var/lib/redpanda
+      src: /mnt/vectorized/redpanda
+      state: link
+      owner: root
+      group: root
+      mode: ugo=rwx
+
+- name: Store server lists
+  hosts: all
+  connection: ssh
+  tags: client
+  tasks:
+    - set_fact:
+        bootstrapServers: "{{ groups['redpanda'] | map('extract', hostvars, ['private_ip']) | map('regex_replace', '^(.*)$', '\\1:9092') | join(',') | default(bootstrapServers) }}"
+      when: bootstrapServers is not defined
+
+- name: install redpanda
+  hosts: redpanda
+  tasks:
+    - set_fact:
+        setup_repo: https://packages.vectorized.io/nzc4ZYQK3WRGd9sy/redpanda/cfg/setup/bash.deb.sh
+      when:
+        - channel | default('stable') == 'stable'
+        -  ansible_os_family == 'Debian'
+    - set_fact:
+        setup_repo: https://packages.vectorized.io/nzc4ZYQK3WRGd9sy/redpanda/cfg/setup/bash.rpm.sh
+      when:
+        - channel | default('stable') == 'stable'
+        -  ansible_os_family == 'RedHat'
+    - set_fact:
+        setup_repo: https://packages.vectorized.io/E4xN1tVe3Xy60GTx/redpanda-unstable/setup.deb.sh
+      when:
+        - channel | default('stable') == 'unstable'
+        -  ansible_os_family == 'Debian'
+    - set_fact:
+        setup_repo: https://packages.vectorized.io/E4xN1tVe3Xy60GTx/redpanda-unstable/setup.rpm.sh
+      when:
+        - channel | default('stable') == 'unstable'
+        -  ansible_os_family == 'RedHat'
+
+    - name: add the redpanda repo
+      shell: |
+        curl -1sLf {{ setup_repo }} | sudo -E bash
+    - name: install redpanda
+      package:
+        name:
+          - "{{ redpanda_package | default('redpanda')}}"
+        state: present
+        update_cache: yes
+    - name: set data dir file perms
+      file:
+        path: /var/lib/redpanda/data
+        owner: redpanda
+        group: redpanda
+
+- hosts: redpanda
+  tasks:
+  - name: ensure /etc/redpanda exists
+    file:
+      path: /etc/redpanda
+      state: directory
+
+  - name: configure redpanda
+    notify:
+      - fix config owner
+      - restart redpanda-tuner
+      - restart redpanda
+    vars:
+      seed_private_ip: '{{ hostvars[groups["redpanda"][0]].private_ip }}'
+    shell: |
+      rpk config set cluster_id 'test'
+      rpk config set organization 'vectorized.io'
+      rpk config set redpanda.advertised_kafka_api '{
+        address: {{ hostvars[inventory_hostname].private_ip }},
+        port: 9092
+      }' --format yaml
+      rpk config set redpanda.advertised_rpc_api '{
+        address: {{ hostvars[inventory_hostname].private_ip }},
+        port: 33145
+      }' --format yaml
+      rpk mode production
+
+      {% if hostvars[groups['redpanda'][0]].id == hostvars[inventory_hostname].id %}
+      sudo rpk config bootstrap \
+        --id {{ groups['redpanda'].index(inventory_hostname) }} \
+        --self {{ hostvars[inventory_hostname].private_ip }}
+
+      {% else %}
+
+      sudo rpk config bootstrap \
+        --id {{ groups['redpanda'].index(inventory_hostname) }} \
+        --self {{ hostvars[inventory_hostname].private_ip }} \
+        --ips {{ seed_private_ip }}
+      {% endif %}
+
+      rpk redpanda config set 'rpk.admin_api' "
+            brokers:
+              - {{ hostvars[inventory_hostname].private_ip }}:9644
+        " --format yaml
+
+      rpk redpanda config set 'rpk.kafka_api' "
+            brokers:
+              - {{ hostvars[inventory_hostname].private_ip }}:9092
+        " --format yaml
+
+  handlers:
+  - name: fix config owner
+    file:
+      path: /etc/redpanda
+      owner: redpanda
+      group: redpanda
+      mode: 0750
+      state: directory
+      recurse: yes
+  - name: restart redpanda-tuner
+    systemd:
+      name: redpanda-tuner
+      state: restarted
+  - name: restart redpanda
+    systemd:
+      name: redpanda
+      state: restarted
+  - name: restart prometheus
+    systemd:
+      name: prometheus
+      state: restarted
+
+- name: Chrony setup
+  hosts: client
+  connection: ssh
+  become: true
+  tasks:
+    - name: Set chrony path
+      when: ansible_os_family == 'RedHat'
+      set_fact:
+        chrony_path: /etc/chrony.conf
+    - name: Set chrony path
+      when: ansible_os_family == 'Debian'
+      set_fact:
+        chrony_path: /etc/chrony/chrony.conf
+    - name: Set up chronyd
+      template:
+        src: "templates/chrony.conf"
+        dest: "{{ chrony_path }}"
+    - systemd:
+        state: restarted
+        daemon_reload: yes
+        name: "chronyd"
+  tags: chrony
+
+- name: SASL facts
+  tags:
+    - sasl
+    - client
+  hosts: all
+  tasks:
+    - set_fact:
+        sasl_username: "{{ sasl_username | default('admin') }}"
+        sasl_password: "{{ sasl_password | default('admin') }}"
+      when: sasl_enabled| default(False)|bool == True
+
+- name: Setup Benchmark client
+  hosts: client
+  connection: ssh
+  become: true
+  tags: client
+  tasks:
+    - file: path=/opt/benchmark state=absent
+    - name: Copy benchmark code
+      unarchive:
+        src: ../../package/target/openmessaging-benchmark-0.0.1-SNAPSHOT-bin.tar.gz
+        dest: /opt
+    - shell: mv /opt/openmessaging-benchmark-0.0.1-SNAPSHOT /opt/benchmark
+    #- shell: tuned-adm profile latency-performance
+
+    - name: Get list of driver config files
+      raw: ls -1 /opt/benchmark/driver-redpanda/*.yaml
+      register: drivers_list
+
+    - name: Configure URL
+      lineinfile:
+        dest: "{{ item }}"
+        regexp: "^  bootstrap.servers="
+        line: "  bootstrap.servers={{ bootstrapServers }}"
+      with_items: "{{ drivers_list.stdout_lines }}"
+
+    - name: Configure SASL Mechanism
+      lineinfile:
+        dest: "{{ item }}"
+        regexp: "^  sasl.mechanism="
+        insertafter: "^  bootstrap.servers="
+        line: "  sasl.mechanism=SCRAM-SHA-256"
+      with_items: "{{ drivers_list.stdout_lines }}"
+      when: sasl_enabled| default(False)|bool == True
+
+    - name: Configure Benchmark Name
+      lineinfile:
+        dest: "{{ item }}"
+        regexp: "^name: Redpanda"
+        line: "name: Redpanda{{ '+SASL' if sasl_enabled | default(False) | bool == True }}{{ '+TLS' if tls_enabled | default(False)|bool == True }}+{{ groups['redpanda'] | length  }}x{{ hostvars[inventory_hostname]['ansible_product_name'] }}"
+      with_items: "{{ drivers_list.stdout_lines }}"
+
+    - name: Configure Security Protocol
+      lineinfile:
+        dest: "{{ item }}"
+        regexp: "^  security.protocol="
+        insertafter: "^  bootstrap.servers="
+        line: "  security.protocol={{ 'SASL_' if sasl_enabled | default(False) | bool == True }}{{ 'SSL' if tls_enabled | default(False) | bool == True else 'PLAINTEXT' }}"
+      with_items: "{{ drivers_list.stdout_lines }}"
+      when: (sasl_enabled| default(False)|bool == True ) or (tls_enabled| default(False)|bool == True )
+
+    - name: Configure JAAS
+      lineinfile:
+        dest: "{{ item }}"
+        regexp: "^  sasl.jaas.config="
+        insertafter: "^  bootstrap.servers="
+        line: "  sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username='{{ sasl_username }}' password='{{ sasl_password }}';"
+      with_items: "{{ drivers_list.stdout_lines }}"
+      when: sasl_enabled| default(False)|bool == True
+
+    - name: Configure memory
+      lineinfile:
+        dest: /opt/benchmark/bin/benchmark-worker
+        regexp: "^JVM_MEM="
+        line: 'JVM_MEM="-Xms60G -Xmx60G -XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:+ParallelRefProcEnabled -XX:+AggressiveOpts -XX:+DoEscapeAnalysis -XX:ParallelGCThreads=12 -XX:ConcGCThreads=12 -XX:+DisableExplicitGC -XX:-ResizePLAB"'
+    - name: Configure memory
+      lineinfile:
+        dest: /opt/benchmark/bin/benchmark
+        regexp: "^JVM_MEM="
+        line: 'JVM_MEM="-Xmx4G"'
+    - name: Setup JMX for Producer/Consumer clients
+      copy:
+        src: "monitoring/jmx_exporter/jmx_prometheus_javaagent-0.13.0.jar"
+        dest: "/opt/benchmark/jmx_prometheus_javaagent-0.13.0.jar"
+    - name: Configure JMX for Prometheus (Client)
+      template:
+        src: "monitoring/jmx_exporter/client.yml"
+        dest: "/opt/benchmark/metrics.yml"
+    - template:
+        src: "templates/workers.yaml"
+        dest: "/opt/benchmark/workers.yaml"
+    - name: Install benchmark systemd service
+      template:
+        src: "templates/benchmark-worker.service"
+        dest: "/etc/systemd/system/benchmark-worker.service"
+    - name: "Restart benchmark worker"
+      tags:
+        - configure
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        name: "benchmark-worker"
+
+# Install the monitoring stack
+- name: Install Node Exporter
+  hosts: redpanda, client
+  roles:
+    - role: geerlingguy.node_exporter
+      vars:
+      - node_exporter_enabled_collectors: [ntp]
+      when: ansible_architecture == "x86_64"
+      tags:
+        - node_exporter
+
+- name: create a local tmp directory
+  hosts: localhost
+  become: false
+  tasks:
+    - name: create a local temp directory
+      tempfile:
+        state: directory
+        suffix: grafana
+      register: grafana_temp_dir
+    - name: register temp path with redpanda host
+      set_fact:
+        grafana_dir: "{{ grafana_temp_dir.path }}"
+      delegate_to: "{{ groups['redpanda'][0] }}"
+      delegate_facts: True
+      when: groups.redpanda is defined
+    - name: register temp path with prometheus host
+      set_fact:
+        grafana_dir: "{{ grafana_temp_dir.path }}"
+      delegate_to: "{{ item }}"
+      delegate_facts: True
+      with_items: "{{ groups['prometheus'] }}"
+      when: groups.prometheus is defined
+  tags:
+    - prometheus
+    - grafana
+
+- hosts: redpanda[0]
+  tasks:
+  - name: generate the redpanda grafana dashboard
+    shell: |
+      rpk generate grafana-dashboard --datasource prometheus --prometheus-url 'http://{{hostvars[inventory_hostname].private_ip}}:9644/metrics' > '/tmp/redpanda-grafana.json'
+
+  - name: fetch grafana dashboard
+    fetch:
+      src: /tmp/redpanda-grafana.json
+      dest: "{{ grafana_dir }}/"
+      flat: yes
+
+- hosts: prometheus
+  roles:
+  - cloudalchemy.prometheus
+  vars:
+    prometheus_scrape_configs:
+      - job_name: "redpanda"
+        static_configs:
+          - targets: "{{ groups['redpanda'] | map('extract', hostvars, ['ansible_default_ipv4','address']) | map('regex_replace', '^(.*)$','\\1:9644') | list  }}"
+      - job_name: "node"
+        static_configs:
+          - targets: "{{ groups['redpanda'] | map('extract', hostvars, ['ansible_default_ipv4','address']) | map('regex_replace', '^(.*)$','\\1:9100') | list  }}"
+          - targets: "{{ groups['client'] | map('extract', hostvars, ['ansible_default_ipv4','address']) | map('regex_replace', '^(.*)$','\\1:9100') | list  }}"
+      - job_name: "client - jmx"
+        static_configs:
+          - targets: "{{ groups['client'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | map('regex_replace', '^(.*)$', '\\1:9090') | list }}"
+
+- hosts: prometheus
+  roles:
+  - cloudalchemy.grafana
+  vars:
+    grafana_version: 6.7.3
+    grafana_security:
+      admin_user: admin
+      admin_password: enter_your_secure_password
+    grafana_datasources:
+    - name: prometheus
+      type: prometheus
+      access: proxy
+      url: 'http://localhost:9090'
+      basicAuth: false
+    grafana_dashboards_dir: '{{ grafana_dir }}'
+    grafana_dashboards:
+    - dashboard_id: 1860
+      revision_id: 21
+      datasource: prometheus
+    - dashboard_id: 7496
+      revision_id: 1
+      datasource: prometheus
+  tags:
+    - prometheus
+
+- name: TLS facts
+  hosts: all,localhost
+  tags: tls
+  tasks:
+    - set_fact:
+        use_temporary_ca: "{{ use_temporary_ca | default(True) | bool }}"
+        ca_cert: "{{ ca_cert | default('ca/ca.crt') }}"
+
+- name: Create CA
+  ansible.builtin.import_playbook: tls/create-ca.yml
+  when: tls_enabled| default(False)|bool == True and use_temporary_ca == True
+  tags: tls
+
+- name: Generate CSRs
+  ansible.builtin.import_playbook: tls/generate-csrs.yml
+  when: tls_enabled| default(False)|bool == True and use_temporary_ca == True
+  tags: tls
+
+- name: Generate CSRs
+  ansible.builtin.import_playbook: tls/issue-certs.yml
+  when: tls_enabled| default(False)|bool == True and use_temporary_ca == True
+  tags: tls
+
+- name: Install certs
+  ansible.builtin.import_playbook: tls/install-certs.yml
+  when: tls_enabled| default(False)|bool == True
+  tags: tls
+
+- hosts: redpanda
+  tasks:
+  - name: Configure SASL
+    shell:
+      cmd: |
+        rpk cluster config set superusers ['admin'] --api-urls {{ hostvars[inventory_hostname].private_ip }}:9644
+        rpk acl user create admin -p admin --api-urls {{ hostvars[inventory_hostname].private_ip }}:9644
+        rpk acl user create sa_test -p sa_test --api-urls {{ hostvars[inventory_hostname].private_ip }}:9644
+        rpk acl create --allow-principal User:sa_test --operation all --topic '*' --group '*' --user admin --password admin
+        rpk acl create --allow-principal User:sa_test --operation all --cluster --user admin --password admin
+        rpk cluster config set enable_sasl true --api-urls {{ hostvars[inventory_hostname].private_ip }}:9644
+    run_once: True
+    when: sasl_enabled| default(False)|bool == True
+
+  - name: Configure SASL for rpk
+    shell:
+      cmd: |
+        rpk redpanda config set 'rpk.kafka_api.sasl' "
+              user: {{ sasl_username }}
+              password: {{ sasl_password }}
+              type: SCRAM-SHA-256
+        " --format yaml
+    when: sasl_enabled| default(False)|bool == True
+  tags: sasl

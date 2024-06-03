@@ -2,7 +2,7 @@ name: Prepare Streaming Cluster [Install]
 
 on:
   schedule:
-    - cron: '43 7 * * *'
+    - cron: '18 8 * * *'
   workflow_dispatch:
     inputs:
       cloud_provider:
@@ -68,6 +68,9 @@ jobs:
           sed -i "s/\${AUTOMQ_ENVID}/${{ inputs.streaming_provider }}/g" "driver-nats/deploy/provision-nats-aws.tf"
           sed -i "s/\${AUTOMQ_ENVID}/${{ inputs.streaming_provider }}/g" "driver-pravega/deploy/provision-pravega-aws.tf"
           sed -i "s/\${AUTOMQ_ENVID}/${{ inputs.streaming_provider }}/g" "driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/provision-kafka-aws.tf"
+        with:
+          streaming_provider: automq
+          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
 
       - name: Apply Variables and Secrets for Streaming Provider
         working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
@@ -85,14 +88,17 @@ jobs:
           TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
           TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}-${{ inputs.cloud_provider }}-${{ inputs.streaming_provider }}
           REGION: ${{ inputs.region }}
-
+        with:
+          streaming_provider: automq
+          region: ${{ inputs.region || 'cn-northwest-1' }}
+          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AUTOMQ_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AUTOMQ_SECRET_KEY }}
-          aws-region: ${{ inputs.region }}
+          aws-region: ${{ inputs.region || 'cn-northwest-1' }}
 
       - name: Setup SSH key
         shell: bash
@@ -102,6 +108,9 @@ jobs:
           echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}.pub
           chmod 600 ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}
           chmod 644 ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}.pub
+        with:
+          streaming_provider: automq
+          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
 
       - name: Install python
         uses: actions/setup-python@v4
@@ -125,6 +134,10 @@ jobs:
           
           COST_DETAIL_FILE=/tmp/aws-cost.txt
           cat $COST_DETAIL_FILE
+        with:
+          streaming_provider: automq
+          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
+
       - name: Execute Shared Steps
         id: shared-automq
         uses: ./.github/actions/prepare-vs-shared
@@ -133,14 +146,14 @@ jobs:
           automq_access_key: ${{ secrets.AUTOMQ_ACCESS_KEY }}
           automq_secret_key: ${{ secrets.AUTOMQ_SECRET_KEY }}
           tf_backend_bucket: ${{ secrets.TF_BACKEND_BUCKET }}
-          tf_backend_key: ${{ secrets.TF_BACKEND_KEY }}-${{ github.event.inputs.cloud_provider || 'aws-cn' }}
-          region: ${{ github.event.inputs.region || 'cn-northwest-1' }}
-          cloud_provider: ${{ github.event.inputs.cloud_provider || 'aws-cn' }}
+          tf_backend_key: ${{ secrets.TF_BACKEND_KEY }}-${{ inputs.cloud_provider || 'aws-cn' }}
+          region: ${{ inputs.region || 'cn-northwest-1' }}
+          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
           ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
           infra_cost_api_key: ${{ secrets.INFRA_COST_API_KEY }}
-          uninstall: ${{ github.event.inputs.uninstall || false }}
-          execute_benchmark: ${{ github.event.inputs.execute_benchmark || false }}
+          uninstall: ${{ inputs.uninstall || false }}
+          execute_benchmark: ${{ inputs.execute_benchmark || false }}
 
 
   prepare_kafka_env:
@@ -184,6 +197,9 @@ jobs:
           sed -i "s/\${AUTOMQ_ENVID}/${{ inputs.streaming_provider }}/g" "driver-nats/deploy/provision-nats-aws.tf"
           sed -i "s/\${AUTOMQ_ENVID}/${{ inputs.streaming_provider }}/g" "driver-pravega/deploy/provision-pravega-aws.tf"
           sed -i "s/\${AUTOMQ_ENVID}/${{ inputs.streaming_provider }}/g" "driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/provision-kafka-aws.tf"
+        with:
+          streaming_provider: kafka
+          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
 
       - name: Apply Variables and Secrets for Streaming Provider
         working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
@@ -201,14 +217,17 @@ jobs:
           TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
           TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}-${{ inputs.cloud_provider }}-${{ inputs.streaming_provider }}
           REGION: ${{ inputs.region }}
-
+        with:
+          streaming_provider: kafka
+          region: ${{ inputs.region || 'cn-northwest-1' }}
+          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AUTOMQ_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AUTOMQ_SECRET_KEY }}
-          aws-region: ${{ inputs.region }}
+          aws-region:  ${{ inputs.region || 'cn-northwest-1' }}
 
       - name: Setup SSH key
         shell: bash
@@ -218,6 +237,9 @@ jobs:
           echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}.pub
           chmod 600 ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}
           chmod 644 ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}.pub
+        with:
+          streaming_provider: kafka
+          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
 
       - name: Install python
         uses: actions/setup-python@v4
@@ -241,6 +263,11 @@ jobs:
           
           COST_DETAIL_FILE=/tmp/aws-cost.txt
           cat $COST_DETAIL_FILE
+        with:
+          streaming_provider: kafka
+          region: ${{ inputs.region || 'cn-northwest-1' }}
+          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
+
       - name: Execute Shared Steps
         id: shared-kafka
         uses: ./.github/actions/prepare-vs-shared
@@ -249,14 +276,14 @@ jobs:
           automq_access_key: ${{ secrets.AUTOMQ_ACCESS_KEY }}
           automq_secret_key: ${{ secrets.AUTOMQ_SECRET_KEY }}
           tf_backend_bucket: ${{ secrets.TF_BACKEND_BUCKET }}
-          tf_backend_key: ${{ secrets.TF_BACKEND_KEY }}-${{ github.event.inputs.cloud_provider || 'aws-cn' }}
-          region: ${{ github.event.inputs.region || 'cn-northwest-1' }}
-          cloud_provider: ${{ github.event.inputs.cloud_provider || 'aws-cn' }}
+          tf_backend_key: ${{ secrets.TF_BACKEND_KEY }}-${{ inputs.cloud_provider || 'aws-cn' }}
+          region: ${{ inputs.region || 'cn-northwest-1' }}
+          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
           ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
           infra_cost_api_key: ${{ secrets.INFRA_COST_API_KEY }}
-          uninstall: ${{ github.event.inputs.uninstall || false }}
-          execute_benchmark: ${{ github.event.inputs.execute_benchmark || false }}
+          uninstall: ${{ inputs.uninstall || false }}
+          execute_benchmark: ${{ inputs.execute_benchmark || false }}
 
 
 

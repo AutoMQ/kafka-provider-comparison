@@ -176,7 +176,7 @@ const markdownReport = `
   > Cost Estimate Rule: AutoMQ 800MB of storage corresponds to about 25 PUTs and 10 GETs.We have estimated that each GB corresponds to 31.25 PUTs and 12.5 GETs.Assuming a peak throughput of 0.5 GB/s and an average throughput of 0.01 GB/s, with data retention for 7 days, the data volume for 30 days(calculated with 7 days) is:7*24*3600*0.01GB/s = 6048GB = 5.9T ≈ 6T
 
 
-  | Streaming System | E2E LatencyAvg(ms) | E2E P95 Latency(ms) | E2E P99 Latency(ms) | Baseline Cost | Usage Cost | Total Cost |
+  | Kafka Provider | E2E LatencyAvg(ms) | E2E P95 Latency(ms) | E2E P99 Latency(ms) | Baseline Cost | Usage Cost | Total Cost |
   | ---------------- | ------------------ | ------------------- | ------------------- | ------------- | ---------- | ---------- |
   | AutoMQ           | ${latencyAvgAutoMQ}      | ${latency95pctAutoMQ}     | ${latency99pctAutoMQ}     | ${baselineCostAutoMQ} | ${usageCostAutoMQ} | ${totalCostAutoMQ} |
   | Apache Kafka           | ${latencyAvgKafka}      | ${latency95pctKafka}     | ${latency99pctKafka}     | ${baselineCostKafka} | ${usageCostKafka} | ${totalCostKafka} |

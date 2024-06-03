@@ -1,6 +1,12 @@
-name: Prepare Streaming Cluster
+name: Prepare Streaming Cluster [Benchmark]
 
 on:
+  workflow_run:
+    workflows: ["Prepare Streaming Cluster [Install]"]
+    types:
+      - completed
+  schedule:
+    - cron: '0 0 * * 1'  # 每周一午夜执行
   workflow_dispatch:
     inputs:
       cloud_provider:
@@ -20,7 +26,7 @@ on:
         required: true
         type: boolean
       execute_benchmark:
-        default: false
+        default: true
         required: true
         type: boolean
 

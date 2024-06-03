@@ -88,7 +88,7 @@ jobs:
         env:
           ## sed match only support ENV rather than expression like ${{ secrets.TF_BACKEND_BUCKET }}
           TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
-          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}
+          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}-aws-cn
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4

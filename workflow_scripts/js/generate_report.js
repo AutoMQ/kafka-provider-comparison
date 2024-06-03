@@ -159,7 +159,7 @@ const markdownReport = `
   ${topicConfigPairsAutoMQ}
   #### replicationFactor
   ${replication_factor_automq}
-  #### Replication Configuration
+  #### Average Throughput
   Average Throughput [AutoMQ]: ${average_throughput_automq_new} MB/s
   Average Throughput [Kafka]: ${average_throughput_automq_new} MB/s
 

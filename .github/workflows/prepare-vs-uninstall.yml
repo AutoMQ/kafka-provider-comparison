@@ -6,7 +6,7 @@ on:
     types:
       - completed
   schedule:
-    - cron: '14 6 * * *'  # 12:45 every day. Cron expression is UTC time.
+    - cron: '24 6 * * *'
   workflow_dispatch:
     inputs:
       cloud_provider:

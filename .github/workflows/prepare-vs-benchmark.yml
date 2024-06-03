@@ -6,7 +6,7 @@ on:
     types:
       - completed
   schedule:
-    - cron: '54 11 * * *'
+    - cron: '12 19 * * *'
   workflow_dispatch:
     inputs:
       cloud_provider:
@@ -29,7 +29,7 @@ on:
 jobs:
 
   prepare_automq_env:
-    environment: ${{ inputs.cloud_provider }}
+    environment: ${{ inputs.cloud_provider || 'aws-cn' }}
     name: Prepare AutoMQ Environment
     runs-on: ubuntu-latest
     env:
@@ -148,7 +148,7 @@ jobs:
 
 
   prepare_kafka_env:
-    environment: ${{ inputs.cloud_provider }}
+    environment: ${{ inputs.cloud_provider || 'aws-cn' }}
     name: Prepare Kafka Environment
     runs-on: ubuntu-latest
     env:
@@ -208,7 +208,7 @@ jobs:
           ## sed match only support ENV rather than expression like ${{ secrets.TF_BACKEND_BUCKET }}
           TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
           TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}
-          REGION: ${{ inputs.region }}
+          REGION: ${{ inputs.region || 'cn-northwest-1' }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4

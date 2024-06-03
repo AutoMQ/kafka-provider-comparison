@@ -6,7 +6,7 @@ on:
     types:
       - completed
   schedule:
-    - cron: '24 6 * * *'
+    - cron: '35 6 * * *'
   workflow_dispatch:
     inputs:
       cloud_provider:
@@ -54,6 +54,81 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+      #      Composition action can't access secrets input, so we inline related step here
+      - name: Fetch Latest Data
+        shell: bash
+        run: |
+          git pull origin main
+
+      - name: Build Benchmark Code
+        shell: bash
+        run: |
+          mvn clean package -Dlicense.skip=true -Dcheckstyle.skip -DskipTests -Dspotless.check.skip
+
+      - name: Apply Variables and Secrets for Shared Files
+        shell: bash
+        run: |
+          echo "current path is: $(pwd)"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ inputs.streaming_provider }}/g" "driver-nats/deploy/provision-nats-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ inputs.streaming_provider }}/g" "driver-pravega/deploy/provision-pravega-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ inputs.streaming_provider }}/g" "driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/provision-kafka-aws.tf"
+
+      - name: Apply Variables and Secrets for Streaming Provider
+        working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
+        ## Set AK/SK and terraform s3 backend info
+        shell: bash
+        run: |
+          echo "current path is: $(pwd)"
+          sed -i "s/\${TF_BACKEND_BUCKET}/$TF_BACKEND_BUCKET/g" "provision-kafka-aws.tf"
+          sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY/g" "provision-kafka-aws.tf"
+          sed -i "s/\${TF_BACKEND_REGION}/$REGION/g" "provision-kafka-aws.tf"
+          sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "var.tfvars"
+          sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "var.tfvars"
+        env:
+          ## sed match only support ENV rather than expression like ${{ secrets.TF_BACKEND_BUCKET }}
+          TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
+          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}-${{ inputs.cloud_provider }}-${{ inputs.streaming_provider }}
+          REGION: ${{ inputs.region }}
+
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AUTOMQ_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AUTOMQ_SECRET_KEY }}
+          aws-region: ${{ inputs.region }}
+
+      - name: Setup SSH key
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}.pub
+          chmod 600 ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}
+          chmod 644 ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}.pub
+
+      - name: Install python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Setup Infra Cost
+        shell: bash
+        run: |
+          # Downloads the CLI based on your OS/arch and puts it in /usr/local/bin
+          curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
+          infracost --version
+          infracost configure set api_key ${{ secrets.INFRA_COST_API_KEY }}
+
+      - name: AWS Cost Estimate
+        shell: bash
+        run: |
+          echo "[INFO] Provider is AutoMQ"
+          cd  driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
+          infracost breakdown --path . --usage-file infracost/${{ inputs.cloud_provider }}-medium-500m-6t.yml >> /tmp/aws-cost.txt
+          
+          COST_DETAIL_FILE=/tmp/aws-cost.txt
+          cat $COST_DETAIL_FILE
       - name: Execute Shared Steps
         id: shared-automq
         uses: ./.github/actions/prepare-vs-shared
@@ -95,6 +170,81 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+      #      Composition action can't access secrets input, so we inline related step here
+      - name: Fetch Latest Data
+        shell: bash
+        run: |
+          git pull origin main
+
+      - name: Build Benchmark Code
+        shell: bash
+        run: |
+          mvn clean package -Dlicense.skip=true -Dcheckstyle.skip -DskipTests -Dspotless.check.skip
+
+      - name: Apply Variables and Secrets for Shared Files
+        shell: bash
+        run: |
+          echo "current path is: $(pwd)"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ inputs.streaming_provider }}/g" "driver-nats/deploy/provision-nats-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ inputs.streaming_provider }}/g" "driver-pravega/deploy/provision-pravega-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ inputs.streaming_provider }}/g" "driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/provision-kafka-aws.tf"
+
+      - name: Apply Variables and Secrets for Streaming Provider
+        working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
+        ## Set AK/SK and terraform s3 backend info
+        shell: bash
+        run: |
+          echo "current path is: $(pwd)"
+          sed -i "s/\${TF_BACKEND_BUCKET}/$TF_BACKEND_BUCKET/g" "provision-kafka-aws.tf"
+          sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY/g" "provision-kafka-aws.tf"
+          sed -i "s/\${TF_BACKEND_REGION}/$REGION/g" "provision-kafka-aws.tf"
+          sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "var.tfvars"
+          sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "var.tfvars"
+        env:
+          ## sed match only support ENV rather than expression like ${{ secrets.TF_BACKEND_BUCKET }}
+          TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
+          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}-${{ inputs.cloud_provider }}-${{ inputs.streaming_provider }}
+          REGION: ${{ inputs.region }}
+
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AUTOMQ_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AUTOMQ_SECRET_KEY }}
+          aws-region: ${{ inputs.region }}
+
+      - name: Setup SSH key
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}.pub
+          chmod 600 ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}
+          chmod 644 ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}.pub
+
+      - name: Install python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Setup Infra Cost
+        shell: bash
+        run: |
+          # Downloads the CLI based on your OS/arch and puts it in /usr/local/bin
+          curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
+          infracost --version
+          infracost configure set api_key ${{ secrets.INFRA_COST_API_KEY }}
+
+      - name: AWS Cost Estimate
+        shell: bash
+        run: |
+          echo "[INFO] Provider is AutoMQ"
+          cd  driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
+          infracost breakdown --path . --usage-file infracost/${{ inputs.cloud_provider }}-medium-500m-6t.yml >> /tmp/aws-cost.txt
+          
+          COST_DETAIL_FILE=/tmp/aws-cost.txt
+          cat $COST_DETAIL_FILE
       - name: Execute Shared Steps
         id: shared-kafka
         uses: ./.github/actions/prepare-vs-shared

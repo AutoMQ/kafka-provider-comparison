@@ -6,7 +6,7 @@ on:
     types:
       - completed
   schedule:
-    - cron: '18 8 * * *'
+    - cron: '48 8 * * *'
   workflow_dispatch:
     inputs:
       cloud_provider:
@@ -36,6 +36,10 @@ jobs:
     environment: ${{ inputs.cloud_provider }}
     name: Prepare AutoMQ Environment
     runs-on: ubuntu-latest
+    env:
+      STREAMING_PROVIDER: ${{ inputs.compared_streaming_provider || 'automq' }}
+      CLOUD_PROVIDER: ${{ inputs.cloud_provider || 'aws-cn' }}
+      REGION: ${{ inputs.region || 'cn-northwest-1' }}
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     outputs:
       benchmark_result_json_automq: ${{ steps.shared-automq.outputs.benchmark_result_json_automq }}
@@ -165,6 +169,10 @@ jobs:
     environment: ${{ inputs.cloud_provider }}
     name: Prepare Kafka Environment
     runs-on: ubuntu-latest
+    env:
+      STREAMING_PROVIDER: ${{ inputs.compared_streaming_provider || 'kafka' }}
+      CLOUD_PROVIDER: ${{ inputs.cloud_provider || 'aws-cn' }}
+      REGION: ${{ inputs.region || 'cn-northwest-1' }}
     outputs:
       benchmark_result_json_kafka: ${{ steps.shared-kafka.outputs.benchmark_result_json_kafka }}
       extracted_data_kafka: ${{ steps.shared-kafka.outputs.extracted_data_kafka }}
@@ -199,15 +207,12 @@ jobs:
         shell: bash
         run: |
           echo "current path is: $(pwd)"
-          sed -i "s/\${AUTOMQ_ENVID}/${{ inputs.streaming_provider }}/g" "driver-nats/deploy/provision-nats-aws.tf"
-          sed -i "s/\${AUTOMQ_ENVID}/${{ inputs.streaming_provider }}/g" "driver-pravega/deploy/provision-pravega-aws.tf"
-          sed -i "s/\${AUTOMQ_ENVID}/${{ inputs.streaming_provider }}/g" "driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/provision-kafka-aws.tf"
-        with:
-          streaming_provider: kafka
-          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
+          sed -i "s/\${AUTOMQ_ENVID}/${STREAMING_PROVIDER}/g" "driver-nats/deploy/provision-nats-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/${STREAMING_PROVIDER}/g" "driver-pravega/deploy/provision-pravega-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/${STREAMING_PROVIDER}/g" "driver-${STREAMING_PROVIDER}/deploy/${CLOUD_PROVIDER}/provision-kafka-aws.tf"
 
       - name: Apply Variables and Secrets for Streaming Provider
-        working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
+        working-directory: driver-${STREAMING_PROVIDER}/deploy/${CLOUD_PROVIDER}
         ## Set AK/SK and terraform s3 backend info
         shell: bash
         run: |
@@ -220,12 +225,8 @@ jobs:
         env:
           ## sed match only support ENV rather than expression like ${{ secrets.TF_BACKEND_BUCKET }}
           TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
-          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}-${{ inputs.cloud_provider }}-${{ inputs.streaming_provider }}
+          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}-${CLOUD_PROVIDER}-${STREAMING_PROVIDER}
           REGION: ${{ inputs.region }}
-        with:
-          streaming_provider: kafka
-          region: ${{ inputs.region || 'cn-northwest-1' }}
-          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -238,13 +239,10 @@ jobs:
         shell: bash
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}
-          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}.pub
-          chmod 600 ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}
-          chmod 644 ~/.ssh/${{ inputs.streaming_provider }}_${{ inputs.cloud_provider }}.pub
-        with:
-          streaming_provider: kafka
-          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/${STREAMING_PROVIDER}_${CLOUD_PROVIDER}
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/${STREAMING_PROVIDER}_${CLOUD_PROVIDER}.pub
+          chmod 600 ~/.ssh/${STREAMING_PROVIDER}_${CLOUD_PROVIDER}
+          chmod 644 ~/.ssh/${STREAMING_PROVIDER}_${CLOUD_PROVIDER}.pub
 
       - name: Install python
         uses: actions/setup-python@v4
@@ -263,15 +261,11 @@ jobs:
         shell: bash
         run: |
           echo "[INFO] Provider is AutoMQ"
-          cd  driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
-          infracost breakdown --path . --usage-file infracost/${{ inputs.cloud_provider }}-medium-500m-6t.yml >> /tmp/aws-cost.txt
+          cd  driver-${STREAMING_PROVIDER}/deploy/${CLOUD_PROVIDER}
+          infracost breakdown --path . --usage-file infracost/${CLOUD_PROVIDER}-medium-500m-6t.yml >> /tmp/aws-cost.txt
           
           COST_DETAIL_FILE=/tmp/aws-cost.txt
           cat $COST_DETAIL_FILE
-        with:
-          streaming_provider: kafka
-          region: ${{ inputs.region || 'cn-northwest-1' }}
-          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
 
       - name: Execute Shared Steps
         id: shared-kafka

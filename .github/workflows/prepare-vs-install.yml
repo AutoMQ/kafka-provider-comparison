@@ -2,7 +2,7 @@ name: Prepare Streaming Cluster [Install]
 
 on:
   schedule:
-    - cron: '19 9 * * *'
+    - cron: '45 9 * * *'
   workflow_dispatch:
     inputs:
       cloud_provider:
@@ -69,18 +69,18 @@ jobs:
         shell: bash
         run: |
           echo "current path is: $(pwd)"
-          sed -i "s/\${AUTOMQ_ENVID}/${STREAMING_PROVIDER}/g" "driver-nats/deploy/provision-nats-aws.tf"
-          sed -i "s/\${AUTOMQ_ENVID}/${STREAMING_PROVIDER}/g" "driver-pravega/deploy/provision-pravega-aws.tf"
-          sed -i "s/\${AUTOMQ_ENVID}/${STREAMING_PROVIDER}/g" "driver-${STREAMING_PROVIDER}/deploy/${CLOUD_PROVIDER}/provision-kafka-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/$STREAMING_PROVIDER/g" "driver-nats/deploy/provision-nats-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/$STREAMING_PROVIDER/g" "driver-pravega/deploy/provision-pravega-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/$STREAMING_PROVIDER/g" "driver-$STREAMING_PROVIDER/deploy/$CLOUD_PROVIDER/provision-kafka-aws.tf"
 
       - name: Apply Variables and Secrets for Streaming Provider
-        working-directory: driver-${STREAMING_PROVIDER}/deploy/${CLOUD_PROVIDER}
+        working-directory: driver-$STREAMING_PROVIDER/deploy/$CLOUD_PROVIDER
         ## Set AK/SK and terraform s3 backend info
         shell: bash
         run: |
           echo "current path is: $(pwd)"
           sed -i "s/\${TF_BACKEND_BUCKET}/$TF_BACKEND_BUCKET/g" "provision-kafka-aws.tf"
-          sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY-${CLOUD_PROVIDER}-${STREAMING_PROVIDER}/g" "provision-kafka-aws.tf"
+          sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY-$CLOUD_PROVIDER-$STREAMING_PROVIDER/g" "provision-kafka-aws.tf"
           sed -i "s/\${TF_BACKEND_REGION}/$REGION/g" "provision-kafka-aws.tf"
           sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "var.tfvars"
           sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "var.tfvars"
@@ -100,10 +100,10 @@ jobs:
         shell: bash
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/${STREAMING_PROVIDER}_${CLOUD_PROVIDER}
-          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/${STREAMING_PROVIDER}_${CLOUD_PROVIDER}.pub
-          chmod 600 ~/.ssh/${STREAMING_PROVIDER}_${CLOUD_PROVIDER}
-          chmod 644 ~/.ssh/${STREAMING_PROVIDER}_${CLOUD_PROVIDER}.pub
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/$STREAMING_PROVIDER_$CLOUD_PROVIDER
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/$STREAMING_PROVIDER_$CLOUD_PROVIDER.pub
+          chmod 600 ~/.ssh/$STREAMING_PROVIDER_$CLOUD_PROVIDER
+          chmod 644 ~/.ssh/$STREAMING_PROVIDER_$CLOUD_PROVIDER.pub
 
       - name: Install python
         uses: actions/setup-python@v4
@@ -122,8 +122,8 @@ jobs:
         shell: bash
         run: |
           echo "[INFO] Provider is AutoMQ"
-          cd  driver-${STREAMING_PROVIDER}/deploy/${CLOUD_PROVIDER}
-          infracost breakdown --path . --usage-file infracost/${CLOUD_PROVIDER}-medium-500m-6t.yml >> /tmp/aws-cost.txt
+          cd  driver-$STREAMING_PROVIDER/deploy/$CLOUD_PROVIDER
+          infracost breakdown --path . --usage-file infracost/$CLOUD_PROVIDER-medium-500m-6t.yml >> /tmp/aws-cost.txt
           
           COST_DETAIL_FILE=/tmp/aws-cost.txt
           cat $COST_DETAIL_FILE
@@ -188,18 +188,18 @@ jobs:
         shell: bash
         run: |
           echo "current path is: $(pwd)"
-          sed -i "s/\${AUTOMQ_ENVID}/${STREAMING_PROVIDER}/g" "driver-nats/deploy/provision-nats-aws.tf"
-          sed -i "s/\${AUTOMQ_ENVID}/${STREAMING_PROVIDER}/g" "driver-pravega/deploy/provision-pravega-aws.tf"
-          sed -i "s/\${AUTOMQ_ENVID}/${STREAMING_PROVIDER}/g" "driver-${STREAMING_PROVIDER}/deploy/${CLOUD_PROVIDER}/provision-kafka-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/$STREAMING_PROVIDER/g" "driver-nats/deploy/provision-nats-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/$STREAMING_PROVIDER/g" "driver-pravega/deploy/provision-pravega-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/$STREAMING_PROVIDER/g" "driver-$STREAMING_PROVIDER/deploy/$CLOUD_PROVIDER/provision-kafka-aws.tf"
 
       - name: Apply Variables and Secrets for Streaming Provider
-        working-directory: driver-${STREAMING_PROVIDER}/deploy/${CLOUD_PROVIDER}
+        working-directory: driver-$STREAMING_PROVIDER/deploy/$CLOUD_PROVIDER
         ## Set AK/SK and terraform s3 backend info
         shell: bash
         run: |
           echo "current path is: $(pwd)"
           sed -i "s/\${TF_BACKEND_BUCKET}/$TF_BACKEND_BUCKET/g" "provision-kafka-aws.tf"
-          sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY-${CLOUD_PROVIDER}-${STREAMING_PROVIDER}/g" "provision-kafka-aws.tf"
+          sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY-$CLOUD_PROVIDER-$STREAMING_PROVIDER/g" "provision-kafka-aws.tf"
           sed -i "s/\${TF_BACKEND_REGION}/$REGION/g" "provision-kafka-aws.tf"
           sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "var.tfvars"
           sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "var.tfvars"
@@ -220,10 +220,10 @@ jobs:
         shell: bash
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/${STREAMING_PROVIDER}_${CLOUD_PROVIDER}
-          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/${STREAMING_PROVIDER}_${CLOUD_PROVIDER}.pub
-          chmod 600 ~/.ssh/${STREAMING_PROVIDER}_${CLOUD_PROVIDER}
-          chmod 644 ~/.ssh/${STREAMING_PROVIDER}_${CLOUD_PROVIDER}.pub
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/$STREAMING_PROVIDER_$CLOUD_PROVIDER
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/$STREAMING_PROVIDER_$CLOUD_PROVIDER.pub
+          chmod 600 ~/.ssh/$STREAMING_PROVIDER_$CLOUD_PROVIDER
+          chmod 644 ~/.ssh/$STREAMING_PROVIDER_$CLOUD_PROVIDER.pub
 
       - name: Install python
         uses: actions/setup-python@v4
@@ -242,8 +242,8 @@ jobs:
         shell: bash
         run: |
           echo "[INFO] Provider is AutoMQ"
-          cd  driver-${STREAMING_PROVIDER}/deploy/${CLOUD_PROVIDER}
-          infracost breakdown --path . --usage-file infracost/${CLOUD_PROVIDER}-medium-500m-6t.yml >> /tmp/aws-cost.txt
+          cd  driver-$STREAMING_PROVIDER/deploy/$CLOUD_PROVIDER
+          infracost breakdown --path . --usage-file infracost/$CLOUD_PROVIDER-medium-500m-6t.yml >> /tmp/aws-cost.txt
           
           COST_DETAIL_FILE=/tmp/aws-cost.txt
           cat $COST_DETAIL_FILE

@@ -6,7 +6,7 @@ on:
     types:
       - completed
   schedule:
-    - cron: '0 0 * * 1'  # 每周一午夜执行
+    - cron: '45 4 * * *'  # 12:45 every day. Cron expression is UTC time.
   workflow_dispatch:
     inputs:
       cloud_provider:

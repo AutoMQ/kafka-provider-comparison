@@ -6,15 +6,11 @@ on:
     types:
       - completed
   schedule:
-    - cron: '10 11 * * *'
+    - cron: '02 11 * * *'
   workflow_dispatch:
     inputs:
       cloud_provider:
         default: aws-cn
-        required: true
-        type: string
-      compared_streaming_provider:
-        default: kafka
         required: true
         type: string
       region:
@@ -165,7 +161,7 @@ jobs:
       baseline_cost_kafka: ${{ steps.shared-kafka.outputs.baseline_cost_kafka }}
       usage_cost_kafka: ${{ steps.shared-kafka.outputs.usage_cost_kafka }}
       total_cost_kafka: ${{ steps.shared-kafka.outputs.total_cost_kafka }}
-    if: ${{ inputs.compared_streaming_provider == 'kafka' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ inputs.uninstall == true  || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Hello World
         run: echo "Hello World"

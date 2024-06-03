@@ -207,7 +207,7 @@ jobs:
         env:
           ## sed match only support ENV rather than expression like ${{ secrets.TF_BACKEND_BUCKET }}
           TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
-          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}
+          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}-aws-cn
           REGION: ${{ inputs.region }}
 
       - name: Configure AWS credentials

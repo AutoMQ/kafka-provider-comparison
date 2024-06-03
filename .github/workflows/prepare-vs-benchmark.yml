@@ -6,7 +6,7 @@ on:
     types:
       - completed
   schedule:
-    - cron: '55 10 * * *'
+    - cron: '10 11 * * *'
   workflow_dispatch:
     inputs:
       cloud_provider:
@@ -37,7 +37,7 @@ jobs:
     name: Prepare AutoMQ Environment
     runs-on: ubuntu-latest
     env:
-      STREAMING_PROVIDER: ${{ inputs.compared_streaming_provider || 'automq' }}
+      STREAMING_PROVIDER: automq
       CLOUD_PROVIDER: ${{ inputs.cloud_provider || 'aws-cn' }}
       REGION: ${{ inputs.region || 'cn-northwest-1' }}
     if: ${{ github.event.workflow_run.conclusion == 'success' ||  inputs.execute_benchmark ==true }}
@@ -156,7 +156,7 @@ jobs:
     name: Prepare Kafka Environment
     runs-on: ubuntu-latest
     env:
-      STREAMING_PROVIDER: ${{ inputs.compared_streaming_provider || 'kafka' }}
+      STREAMING_PROVIDER: kafka
       CLOUD_PROVIDER: ${{ inputs.cloud_provider || 'aws-cn' }}
       REGION: ${{ inputs.region || 'cn-northwest-1' }}
     outputs:

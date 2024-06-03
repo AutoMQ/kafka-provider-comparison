@@ -6,7 +6,7 @@ on:
     types:
       - completed
   schedule:
-    - cron: '3 9 * * *'
+    - cron: '19 9 * * *'
   workflow_dispatch:
     inputs:
       cloud_provider:
@@ -85,14 +85,14 @@ jobs:
         run: |
           echo "current path is: $(pwd)"
           sed -i "s/\${TF_BACKEND_BUCKET}/$TF_BACKEND_BUCKET/g" "provision-kafka-aws.tf"
-          sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY/g" "provision-kafka-aws.tf"
+          sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY-${CLOUD_PROVIDER}-${STREAMING_PROVIDER}/g" "provision-kafka-aws.tf"
           sed -i "s/\${TF_BACKEND_REGION}/$REGION/g" "provision-kafka-aws.tf"
           sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "var.tfvars"
           sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "var.tfvars"
         env:
           ## sed match only support ENV rather than expression like ${{ secrets.TF_BACKEND_BUCKET }}
           TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
-          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}-${CLOUD_PROVIDER}-${STREAMING_PROVIDER}
+          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -204,14 +204,14 @@ jobs:
         run: |
           echo "current path is: $(pwd)"
           sed -i "s/\${TF_BACKEND_BUCKET}/$TF_BACKEND_BUCKET/g" "provision-kafka-aws.tf"
-          sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY/g" "provision-kafka-aws.tf"
+          sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY-${CLOUD_PROVIDER}-${STREAMING_PROVIDER}/g" "provision-kafka-aws.tf"
           sed -i "s/\${TF_BACKEND_REGION}/$REGION/g" "provision-kafka-aws.tf"
           sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "var.tfvars"
           sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "var.tfvars"
         env:
           ## sed match only support ENV rather than expression like ${{ secrets.TF_BACKEND_BUCKET }}
           TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
-          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}-${CLOUD_PROVIDER}-${STREAMING_PROVIDER}
+          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}
           REGION: ${{ inputs.region }}
 
       - name: Configure AWS credentials

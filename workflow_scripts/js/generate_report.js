@@ -149,26 +149,16 @@ const markdownReport = `
   ## AutoMQ Benchmark VS. Result 🚀
   #### Benchmark Info
   **Report Generated:** ${currentDate} ${currentTime}
-  #### Workload Configuration [AutoMQ]
+  #### Workload Configuration
   ${workloadConfigPairsAutoMQ}
-  #### Workload Configuration [Kafka]
-  ${workloadConfigPairsKafka}
-  #### Producer Configuration [AutoMQ]
+  #### Producer Configuration
   ${producerConfigPairsAutoMQ}
-  #### Producer Configuration [Kafka]
-  ${producerConfigPairsKafka}
-  #### Consumer Configuration [AutoMQ]
+  #### Consumer Configuration
   ${consumerConfigPairsAutoMQ}
-  #### Consumer Configuration [Kafka]
-  ${consumerConfigPairsKafka}
-  #### Topic Configuration [AutoMQ]
+  #### Topic Configuration
   ${topicConfigPairsAutoMQ}
-  #### Topic Configuration [Kafka]
-  ${topicConfigPairsKafka}
-  #### replicationFactor [AutoMQ]:
+  #### replicationFactor
   ${replication_factor_automq}
-  #### replicationFactor [Kafka]: 
-  ${replication_factor_kafka}
   #### Replication Configuration
   Average Throughput [AutoMQ]: ${average_throughput_automq_new} MB/s
   Average Throughput [Kafka]: ${average_throughput_automq_new} MB/s

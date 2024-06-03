@@ -2,7 +2,7 @@ name: Prepare Streaming Cluster [Install]
 
 on:
   schedule:
-    - cron: '18 19 * * *'
+    - cron: '24 12 * * *'
   workflow_dispatch:
     inputs:
       cloud_provider:

@@ -14,7 +14,7 @@
 const {Octokit} = require("@octokit/rest");
 
 const repoName = process.env.GITHUB_REPOSITORY_NAME;
-const issue_number = 2; // 这个值应该根据你的需求来设置
+const issue_number = 1; // 这个值应该根据你的需求来设置
 
 const octokit = new Octokit({
     auth: process.env.GITHUB_TOKEN

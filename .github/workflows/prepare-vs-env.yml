@@ -126,45 +126,6 @@ jobs:
           cd $GITHUB_WORKSPACE/workflow_scripts/js
           npm install
 
-#      - name: Output Benchmark Result
-#        id: output_benchmark_result
-#        run: |
-#          if [ "${{ inputs.execute_benchmark }}" = "true" ]; then
-#            sudo apt-get install jq
-#            extracted_benchmark_output=$(cat $GITHUB_WORKSPACE/workflow_scripts/bin/debug.json )
-#            echo "Need Use Multi Line Process"
-#            echo "benchmark_result_json_automq<<EOF" >> $GITHUB_OUTPUT
-#            echo "$extracted_benchmark_output" >> $GITHUB_OUTPUT
-#            echo "EOF" >> $GITHUB_OUTPUT
-#            echo "benchmark_result_json_kafka<<EOF" >> $GITHUB_OUTPUT
-#            echo "$extracted_benchmark_output" >> $GITHUB_OUTPUT
-#            echo "EOF" >> $GITHUB_OUTPUT
-#          fi
-#        env:
-#          STREAMING_PROVIDER: ${{ inputs.streaming_provider }}
-#
-#
-#      - name: Extract Information from Benchmark Worker Log
-#        id: extract_final_result
-#        run: |
-#          if [ "${{ inputs.execute_benchmark }}" = "true" ]; then
-#            cat $GITHUB_WORKSPACE/workflow_scripts/bin/debug.output >> /tmp/benchmark-worker.log
-#            python3 workflow_scripts/python/extract_info_from_benchmark.py
-#            extracted_data=$(cat /tmp/extracted_data)
-#            echo $extracted_data
-#
-#            # 使用多行字符串语法来设置环境变量
-#            echo "extracted_data_automq<<EOF_MARKER" >> $GITHUB_OUTPUT
-#            echo "$extracted_data" >> $GITHUB_OUTPUT
-#            echo "EOF_MARKER" >> $GITHUB_OUTPUT
-#
-#            echo "extracted_data_kafka<<EOF_MARKER" >> $GITHUB_OUTPUT
-#            echo "$extracted_data" >> $GITHUB_OUTPUT
-#            echo "EOF_MARKER" >> $GITHUB_OUTPUT
-#          fi
-#        env:
-#          STREAMING_PROVIDER: ${{ inputs.streaming_provider }}
-
       ##ref: https://stackoverflow.com/questions/77181212/use-composite-action-output-as-step-output
       - name: Generate Report in Issue
         if: ${{ inputs.execute_benchmark }}
@@ -191,7 +152,7 @@ jobs:
           echo "BASELINE_COST_KAFKA: $BASELINE_COST_KAFKA"
           echo "USAGE_COST_KAFKA: $USAGE_COST_KAFKA"
           echo "TOTAL_COST_KAFKA: $TOTAL_COST_KAFKA"
-          echo "GITHUB_TOKEN: [REDACTED]"  # 出于安全考虑，这里不打印实际的令牌
+          echo "GITHUB_TOKEN: [REDACTED]"
           echo "GITHUB_REPOSITORY_NAME: $GITHUB_REPOSITORY_NAME"
           cd $GITHUB_WORKSPACE/workflow_scripts/js
           node $GITHUB_WORKSPACE/workflow_scripts/js/generate_report.js

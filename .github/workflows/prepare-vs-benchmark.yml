@@ -6,7 +6,7 @@ on:
     types:
       - completed
   schedule:
-    - cron: '7 10 * * *'
+    - cron: '40 10 * * *'
   workflow_dispatch:
     inputs:
       cloud_provider:
@@ -40,7 +40,7 @@ jobs:
       STREAMING_PROVIDER: ${{ inputs.compared_streaming_provider || 'automq' }}
       CLOUD_PROVIDER: ${{ inputs.cloud_provider || 'aws-cn' }}
       REGION: ${{ inputs.region || 'cn-northwest-1' }}
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' ||  inputs.execute_benchmark =='true' }}
     outputs:
       benchmark_result_json_automq: ${{ steps.shared-automq.outputs.benchmark_result_json_automq }}
       extracted_data_automq: ${{ steps.shared-automq.outputs.extracted_data_automq }}
@@ -165,7 +165,7 @@ jobs:
       baseline_cost_kafka: ${{ steps.shared-kafka.outputs.baseline_cost_kafka }}
       usage_cost_kafka: ${{ steps.shared-kafka.outputs.usage_cost_kafka }}
       total_cost_kafka: ${{ steps.shared-kafka.outputs.total_cost_kafka }}
-    if: ${{ inputs.compared_streaming_provider == 'kafka' && github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ inputs.compared_streaming_provider == 'kafka' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Hello World
         run: echo "Hello World"
@@ -292,7 +292,7 @@ jobs:
 
       ##ref: https://stackoverflow.com/questions/77181212/use-composite-action-output-as-step-output
       - name: Generate Report in Issue
-        if: ${{ inputs.execute_benchmark }}
+        if: ${{ inputs.execute_benchmark || true }}
         env:
           BASELINE_COST_AUTOMQ: ${{ needs.prepare_automq_env.outputs.baseline_cost_automq }}
           USAGE_COST_AUTOMQ: ${{ needs.prepare_automq_env.outputs.usage_cost_automq }}

@@ -97,15 +97,13 @@ public class Benchmark {
         public String output;
     }
 
-
     private static Config config;
     private static Properties topicProperties;
     private static Properties producerProperties;
     private static Properties consumerProperties;
 
-
     @SneakyThrows
-    private static void printDriverConfigLog(File configurationFile){
+    private static void printDriverConfigLog(File configurationFile) {
         config = mapper.readValue(configurationFile, Config.class);
 
         Properties commonProperties = new Properties();
@@ -115,29 +113,29 @@ public class Benchmark {
         commonProperties.forEach((key, value) -> producerProperties.put(key, value));
         producerProperties.load(new StringReader(config.producerConfig));
         producerProperties.put(
-            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producerProperties.put(
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
 
         consumerProperties = new Properties();
         commonProperties.forEach((key, value) -> consumerProperties.put(key, value));
         consumerProperties.load(new StringReader(config.consumerConfig));
         consumerProperties.put(
-            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProperties.put(
-            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
 
         topicProperties = new Properties();
         topicProperties.load(new StringReader(config.topicConfig));
 
         log.info(
-            "Initialized Kafka benchmark driver with common config: {}, producer config: {},"
-                + " consumer config: {}, topic config: {}, replicationFactor: {}",
-            commonProperties,
-            producerProperties,
-            consumerProperties,
-            topicProperties,
-            config.replicationFactor);
+                "Initialized Kafka benchmark driver with common config: {}, producer config: {},"
+                        + " consumer config: {}, topic config: {}, replicationFactor: {}",
+                commonProperties,
+                producerProperties,
+                consumerProperties,
+                topicProperties,
+                config.replicationFactor);
     }
 
     public static void main(String[] args) throws Exception {

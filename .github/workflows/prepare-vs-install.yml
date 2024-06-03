@@ -145,9 +145,9 @@ jobs:
           echo '${{ needs.prepare_kafka_env.outputs.benchmark_result_json_kafka }}' > $GITHUB_WORKSPACE/workflow_scripts/js/BENCHMARK_RESULT_KAFKA.info
           echo '${{ needs.prepare_automq_env.outputs.extracted_data_automq }}' > $GITHUB_WORKSPACE/workflow_scripts/js/EXTRACTED_DATA_AUTOMQ.info
           echo '${{ needs.prepare_kafka_env.outputs.extracted_data_kafka }}' > $GITHUB_WORKSPACE/workflow_scripts/js/EXTRACTED_DATA_KAFKA.info
-          
+
           export WORKSPACE_HOME=$GITHUB_WORKSPACE
-          
+
           echo "BASELINE_COST_AUTOMQ: $BASELINE_COST_AUTOMQ"
           echo "USAGE_COST_AUTOMQ: $USAGE_COST_AUTOMQ"
           echo "TOTAL_COST_AUTOMQ: $TOTAL_COST_AUTOMQ"

@@ -215,7 +215,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AUTOMQ_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AUTOMQ_SECRET_KEY }}
-          aws-region:  ${{ inputs.region || 'cn-northwest-1' }}
+          aws-region: ${{ inputs.region || 'cn-northwest-1' }}
 
       - name: Setup SSH key
         shell: bash

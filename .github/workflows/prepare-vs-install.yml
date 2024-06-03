@@ -2,7 +2,7 @@ name: Prepare Streaming Cluster [Install]
 
 on:
   schedule:
-    - cron: '12 11 * * *'
+    - cron: '54 11 * * *'
   workflow_dispatch:
     inputs:
       cloud_provider:
@@ -209,7 +209,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AUTOMQ_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AUTOMQ_SECRET_KEY }}
-          aws-region:  ${{ inputs.region || 'cn-northwest-1' }}
+          aws-region: ${{ inputs.region || 'cn-northwest-1' }}
 
       - name: Setup SSH key
         shell: bash

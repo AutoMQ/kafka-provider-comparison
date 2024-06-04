@@ -94,19 +94,15 @@
     - name: Format disks
       filesystem:
         fstype: ext4
-        dev: '{{ item }}'
-      with_items:
-        ## aws default raw data disk name is /dev/nvme1n1
-        - '/dev/nvme1n1'
+        dev: '{{ hostvars[inventory_hostname]["data_volume"] }}'
+
     - name: Mount disks
       mount:
-        path: "{{ item.path }}"
-        src: "{{ item.src }}"
+        path: "{{ base_data_path }}"
+        src: "{{ hostvars[inventory_hostname]['data_volume'] }}"
         fstype: ext4
         opts: defaults,noatime,nodiscard,data=writeback
         state: mounted
-      with_items:
-        - { path: "{{ base_data_path }}", src: "/dev/nvme1n1" }
 
 - name: Kafka general setup
   tags: [prepare]
@@ -127,7 +123,7 @@
         - set_fact:
             quorumServers: "{{ quorumServers[:-1] }}"
             kafkaVersion: "3.6.0"
-            KAFKA_CLUSTER_ID: "XPufKTN9T1SpE82LDKwXwA"
+            KAFKA_CLUSTER_ID: "{{ hostvars[inventory_hostname]['cluster_id'] }}"
             flushScheduleInterval: "9223372036854775807"
     - name: Download Kafka package
       unarchive:

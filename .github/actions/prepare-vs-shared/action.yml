@@ -76,31 +76,31 @@ runs:
       uses: hashicorp/setup-terraform@v3
 
     - name: Initialize terraform
-      working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
+      working-directory: driver-shared/deploy/${{ inputs.cloud_provider }}
       shell: bash
       run: terraform init
 
     - name: Uninstall Cloud Infra
-      working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
+      working-directory: driver-shared/deploy/${{ inputs.cloud_provider }}
       shell: bash
       run: |
         if [ "${{ inputs.uninstall }}" == "true" ]; then
-          terraform destroy --auto-approve -var-file var.tfvars
+          terraform destroy --auto-approve -var-file $GITHUB_WORKSPACE/driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/var.tfvars
         fi     
 
 
     - name: Terraform Plan
-      working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
+      working-directory: driver-shared/deploy/${{ inputs.cloud_provider }}
       shell: bash
-      run: terraform plan -var-file var.tfvars
+      run: terraform plan -var-file $GITHUB_WORKSPACE/driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/var.tfvars
 
 
     - name: Apply terraform
-      working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
+      working-directory: driver-shared/deploy/${{ inputs.cloud_provider }}
       shell: bash
       run: |
         if [ "${{ inputs.uninstall }}" = "false" ]; then
-          terraform apply --auto-approve -var-file var.tfvars
+          terraform apply --auto-approve -var-file $GITHUB_WORKSPACE/driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/var.tfvars
         fi
 
 
@@ -123,25 +123,20 @@ runs:
 
 
     - name: Install Streaming Cluster
-      working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
+      working-directory: driver-shared/deploy/${{ inputs.cloud_provider }}
       shell: bash
       run: |
         if [[ "${{ inputs.uninstall }}" = "false" && "${{ inputs.execute_benchmark }}" = "false" ]]; then
-          if [ "${{ inputs.streaming_provider }}" = "automq" ]; then
-              echo "Install AutoMQ"
-              ansible-playbook deploy.yaml -i hosts.ini
-          elif [ "${{ inputs.streaming_provider }}" = "kafka" ]; then
               echo "Install Apache Kafka"
               wget https://github.com/adammck/terraform-inventory/releases/download/v0.10/terraform-inventory_v0.10_linux_amd64.zip
               unzip terraform-inventory_v0.10_linux_amd64.zip
               mv terraform-inventory /usr/local/bin
-              ansible-playbook   --user ubuntu --inventory `which terraform-inventory` deploy.yaml 
-          fi
+              ansible-playbook   --user ubuntu -i hosts.ini --inventory `which terraform-inventory` $GITHUB_WORKSPACE/driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/deploy.yaml 
         fi
       
 
     - name: Execute Benchmark
-      working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
+      working-directory: driver-shared/deploy/${{ inputs.cloud_provider }}
       shell: bash
       run: |
         if [ "${{ inputs.execute_benchmark }}" = "true" ]; then

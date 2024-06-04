@@ -70,7 +70,7 @@ jobs:
           sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-shared/deploy/${{ env.CLOUD_PROVIDER }}/provision-kafka-aws.tf"
 
       - name: Apply Variables and Secrets for Streaming Provider
-        working-directory: driver-${{ env.STREAMING_PROVIDER }}/deploy/${{ env.CLOUD_PROVIDER }}
+        working-directory: driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
         ## Set AK/SK and terraform s3 backend info
         shell: bash
         run: |
@@ -78,8 +78,8 @@ jobs:
           sed -i "s/\${TF_BACKEND_BUCKET}/$TF_BACKEND_BUCKET/g" "provision-kafka-aws.tf"
           sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY-${{ env.CLOUD_PROVIDER }}-${{ env.STREAMING_PROVIDER }}/g" "provision-kafka-aws.tf"
           sed -i "s/\${TF_BACKEND_REGION}/$REGION/g" "provision-kafka-aws.tf"
-          sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "var.tfvars"
-          sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "var.tfvars"
+          sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "$GITHUB_WORKSPACE/driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/"
+          sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "$GITHUB_WORKSPACE/driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/"
         env:
           ## sed match only support ENV rather than expression like ${{ secrets.TF_BACKEND_BUCKET }}
           TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
@@ -118,7 +118,7 @@ jobs:
         shell: bash
         run: |
           echo "[INFO] Provider is AutoMQ"
-          cd  driver-${{ env.STREAMING_PROVIDER }}/deploy/${{ env.CLOUD_PROVIDER }}
+          cd  driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
           infracost breakdown --path . --usage-file infracost/${{ env.CLOUD_PROVIDER }}-medium-500m-6t.yml >> /tmp/aws-cost.txt
           
           COST_DETAIL_FILE=/tmp/aws-cost.txt
@@ -188,7 +188,7 @@ jobs:
           sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-shared/deploy/${{ env.CLOUD_PROVIDER }}/provision-kafka-aws.tf"
 
       - name: Apply Variables and Secrets for Streaming Provider
-        working-directory: driver-${{ env.STREAMING_PROVIDER }}/deploy/${{ env.CLOUD_PROVIDER }}
+        working-directory: driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
         ## Set AK/SK and terraform s3 backend info
         shell: bash
         run: |
@@ -196,8 +196,8 @@ jobs:
           sed -i "s/\${TF_BACKEND_BUCKET}/$TF_BACKEND_BUCKET/g" "provision-kafka-aws.tf"
           sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY-${{ env.CLOUD_PROVIDER }}-${{ env.STREAMING_PROVIDER }}/g" "provision-kafka-aws.tf"
           sed -i "s/\${TF_BACKEND_REGION}/$REGION/g" "provision-kafka-aws.tf"
-          sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "var.tfvars"
-          sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "var.tfvars"
+          sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "$GITHUB_WORKSPACE/driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/"
+          sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "$GITHUB_WORKSPACE/driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/"
         env:
           ## sed match only support ENV rather than expression like ${{ secrets.TF_BACKEND_BUCKET }}
           TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
@@ -237,7 +237,7 @@ jobs:
         shell: bash
         run: |
           echo "[INFO] Provider is AutoMQ"
-          cd  driver-${{ env.STREAMING_PROVIDER }}/deploy/${{ env.CLOUD_PROVIDER }}
+          cd  driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
           infracost breakdown --path . --usage-file infracost/${{ env.CLOUD_PROVIDER }}-medium-500m-6t.yml >> /tmp/aws-cost.txt
           
           COST_DETAIL_FILE=/tmp/aws-cost.txt

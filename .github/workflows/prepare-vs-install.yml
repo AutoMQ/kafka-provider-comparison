@@ -67,7 +67,7 @@ jobs:
           echo "current path is: $(pwd)"
           sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-nats/deploy/provision-nats-aws.tf"
           sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-pravega/deploy/provision-pravega-aws.tf"
-          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-${{ env.STREAMING_PROVIDER }}/deploy/${{ env.CLOUD_PROVIDER }}/provision-kafka-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-shared/deploy/${{ env.CLOUD_PROVIDER }}/provision-kafka-aws.tf"
 
       - name: Apply Variables and Secrets for Streaming Provider
         working-directory: driver-${{ env.STREAMING_PROVIDER }}/deploy/${{ env.CLOUD_PROVIDER }}
@@ -185,7 +185,7 @@ jobs:
           echo "current path is: $(pwd)"
           sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-nats/deploy/provision-nats-aws.tf"
           sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-pravega/deploy/provision-pravega-aws.tf"
-          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-${{ env.STREAMING_PROVIDER }}/deploy/${{ env.CLOUD_PROVIDER }}/provision-kafka-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-shared/deploy/${{ env.CLOUD_PROVIDER }}/provision-kafka-aws.tf"
 
       - name: Apply Variables and Secrets for Streaming Provider
         working-directory: driver-${{ env.STREAMING_PROVIDER }}/deploy/${{ env.CLOUD_PROVIDER }}

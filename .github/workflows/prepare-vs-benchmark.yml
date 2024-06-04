@@ -83,8 +83,8 @@ jobs:
           sed -i "s/\${TF_BACKEND_BUCKET}/$TF_BACKEND_BUCKET/g" "provision-kafka-aws.tf"
           sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY-${{ env.CLOUD_PROVIDER }}-${{ env.STREAMING_PROVIDER }}/g" "provision-kafka-aws.tf"
           sed -i "s/\${TF_BACKEND_REGION}/$REGION/g" "provision-kafka-aws.tf"
-          sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "$GITHUB_WORKSPACE/driver-shared}/deploy/${{ inputs.cloud_provider }}/var.tfvars"
-          sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "$GITHUB_WORKSPACE/driver-shared}/deploy/${{ inputs.cloud_provider }}/var.tfvars"
+          sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "$GITHUB_WORKSPACE/driver-shared/deploy/${{ inputs.cloud_provider }}/var.tfvars"
+          sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "$GITHUB_WORKSPACE/driver-shared/deploy/${{ inputs.cloud_provider }}/var.tfvars"
         env:
           ## sed match only support ENV rather than expression like ${{ secrets.TF_BACKEND_BUCKET }}
           TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
@@ -202,8 +202,8 @@ jobs:
           sed -i "s/\${TF_BACKEND_BUCKET}/$TF_BACKEND_BUCKET/g" "provision-kafka-aws.tf"
           sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY-${{ env.CLOUD_PROVIDER }}-${{ env.STREAMING_PROVIDER }}/g" "provision-kafka-aws.tf"
           sed -i "s/\${TF_BACKEND_REGION}/$REGION/g" "provision-kafka-aws.tf"
-          sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "$GITHUB_WORKSPACE/driver-shared}/deploy/${{ inputs.cloud_provider }}/var.tfvars"
-          sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "$GITHUB_WORKSPACE/driver-shared}/deploy/${{ inputs.cloud_provider }}/var.tfvars"
+          sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "$GITHUB_WORKSPACE/driver-shared/deploy/${{ inputs.cloud_provider }}/var.tfvars"
+          sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "$GITHUB_WORKSPACE/driver-shared/deploy/${{ inputs.cloud_provider }}/var.tfvars"
         env:
           ## sed match only support ENV rather than expression like ${{ secrets.TF_BACKEND_BUCKET }}
           TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}

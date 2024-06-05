@@ -362,9 +362,9 @@ resource "aws_instance" "broker" {
 
   monitoring = var.monitoring
   tags = {
-    Name          = "Kafka_Provider_Comparison_EC2_server_${count.index}_${AUTOMQ_ENVID}"
+    Name          = "Kafka_Provider_Comparison_EC2_broker_${count.index}_${AUTOMQ_ENVID}"
     Benchmark     = "Kafka_Provider_Comparison_${AUTOMQ_ENVID}"
-    NodeID        = local.server_kafka_ids[count.index]
+    NodeID        = local.broker_kafka_ids[count.index]
     KafkaProvider = "${AUTOMQ_ENVID}"
     ClusterID     = local.cluster_id
   }

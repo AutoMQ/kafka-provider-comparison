@@ -24,6 +24,7 @@ terraform {
 }
 
 variable "public_key_path" {
+  default = "~/.ssh/${AUTOMQ_ENVID}_aws-cn.pub"
 }
 
 resource "random_id" "hash" {
@@ -35,10 +36,13 @@ variable "key_name" {
   description = "Desired name prefix for the AWS key pair"
 }
 
-variable "region" {}
+variable "region" {
+  default = "cn-northwest-1"
+}
 
 variable "az" {
   type = list(string)
+  default = ["cn-northwest-1a", "cn-northwest-1b"]
 }
 
 variable "ami" {}
@@ -61,6 +65,7 @@ variable "monitoring" {
 # if true, use spot instances
 variable "spot" {
   type = bool
+  default = false
 }
 
 
@@ -78,25 +83,20 @@ variable "ebs_iops" {
 
 variable "aws_cn" {
   type = bool
+  default = true
 }
 
 variable "ebs_throughput" {
   type = number
 }
 
-variable "access_key" {}
+variable "access_key" {
+  default = "${AUTOMQ_ACCESS_KEY}"
+}
 
-variable "secret_key" {}
-
-// init fixed var value
-public_key_path = "~/.ssh/${AUTOMQ_ENVID}_aws-cn.pub"
-region          = "cn-northwest-1"
-az              = ["cn-northwest-1a", "cn-northwest-1b"]
-access_key      = "${AUTOMQ_ACCESS_KEY}"
-secret_key      = "${AUTOMQ_SECRET_KEY}"
-aws_cn          = true
-monitoring = true
-spot = false
+variable "secret_key" {
+  default = "${AUTOMQ_SECRET_KEY}"
+}
 
 
 locals {

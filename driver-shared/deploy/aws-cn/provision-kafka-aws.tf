@@ -446,7 +446,7 @@ resource "local_file" "hosts_ini" {
       broker_kafka_ids = local.broker_kafka_ids,
       client           = aws_instance.client,
       # use the first client (if exist) for telemetry
-      telemetry        = var.instance_cnt["client"] > 0 ? slice(aws_instance.client, 0, 1) : [],
+#       telemetry        = var.instance_cnt["client"] > 0 ? slice(aws_instance.client, 0, 1) : [],
 
       ssh_user = var.user,
 

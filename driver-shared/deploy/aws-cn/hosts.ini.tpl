@@ -13,11 +13,6 @@ ${ instance.public_ip } ansible_user=${ ssh_user } private_ip=${ instance.privat
 ${ instance.public_ip } ansible_user=${ ssh_user } private_ip=${ instance.private_ip } index=${ i }
 %{ endfor ~}
 
-[telemetry]
-%{ for i, instance in telemetry ~}
-${ instance.public_ip } ansible_user=${ ssh_user } private_ip=${ instance.private_ip }
-%{ endfor ~}
-
 [all:vars]
 cloud_provider=${ cloud_provider }
 s3_endpoint=https://s3.${ s3_region }.${ aws_domain }

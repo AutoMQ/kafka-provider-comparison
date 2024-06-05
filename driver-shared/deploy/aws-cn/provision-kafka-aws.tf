@@ -60,6 +60,7 @@ variable "instance_cnt" {
 # if true, enable CloudWatch monitoring on the instances
 variable "monitoring" {
   type = bool
+  default = true
 }
 
 # if true, use spot instances
@@ -100,7 +101,7 @@ variable "secret_key" {
 
 
 locals {
-  cluster_id       = "Kafka_Provider_mlCHGxHKcA_${AUTOMQ_ENVID}"
+  cluster_id       = "Benchmark___mlCHGxHKcA"
   server_kafka_ids = {for i in range(var.instance_cnt["server"]) : i => i + 1}
   broker_kafka_ids = {for i in range(var.instance_cnt["broker"]) : i => var.instance_cnt["server"] + i + 1}
 }
@@ -336,7 +337,7 @@ resource "aws_instance" "broker" {
     volume_type = "gp3"
     volume_size = 16
     tags = {
-      Name          = "Kafka_Provider_Comparison_EBS_root_server_${count.index}_${AUTOMQ_ENVID}"
+      Name          = "Kafka_Provider_Comparison_EBS_root_broker_${count.index}_${AUTOMQ_ENVID}"
       Benchmark     = "Kafka_Provider_Comparison_${AUTOMQ_ENVID}"
       KafkaProvider = "${AUTOMQ_ENVID}"
       ClusterID     = local.cluster_id
@@ -350,7 +351,7 @@ resource "aws_instance" "broker" {
     iops        = var.ebs_iops
     throughput  = var.ebs_throughput
     tags = {
-      Name          = "Kafka_Provider_Comparison_EBS_data_server_${count.index}_${AUTOMQ_ENVID}"
+      Name          = "Kafka_Provider_Comparison_EBS_data_broker_${count.index}_${AUTOMQ_ENVID}"
       Benchmark     = "Kafka_Provider_Comparison_${AUTOMQ_ENVID}"
       KafkaProvider = "${AUTOMQ_ENVID}"
       ClusterID     = local.cluster_id
@@ -395,7 +396,7 @@ resource "aws_instance" "client" {
 
 # todo add enable s3 switch
 resource "aws_s3_bucket" "benchmark_bucket" {
-  bucket        = "kafka_provider_comparison_bucket_${AUTOMQ_ENVID}"
+  bucket        = "kafka-provider-comparison-bucket-${AUTOMQ_ENVID}"
   force_destroy = true
 
   tags = {

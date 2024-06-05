@@ -9,12 +9,12 @@ instance_type = {
 }
 
 instance_cnt = {
-  "server"              = 1
-  "broker"              = 2
-  "client"              = 2
+  "server"              = 3
+  "broker"              = 12
+  "client"              = 5
 }
 
 ebs_volume_type = "gp3"
-ebs_volume_size = 2048
+ebs_volume_size = 1440
 ebs_iops = 3000
-ebs_throughput = 125
+ebs_throughput = 500

@@ -6,7 +6,7 @@ on:
     types:
       - completed
   schedule:
-    - cron: '30 2 * * *'
+    - cron: '54 11 * * *'
   workflow_dispatch:
     inputs:
       cloud_provider:
@@ -73,6 +73,7 @@ jobs:
           sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-nats/deploy/provision-nats-aws.tf"
           sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-pravega/deploy/provision-pravega-aws.tf"
           sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-shared/deploy/${{ env.CLOUD_PROVIDER }}/provision-kafka-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g"  "driver-shared/deploy/${{ env.CLOUD_PROVIDER }}/ansible.cfg"
 
       - name: Apply Variables and Secrets for Streaming Provider
         working-directory: driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
@@ -124,7 +125,7 @@ jobs:
         run: |
           echo "[INFO] Provider is AutoMQ"
           cd  driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
-          infracost breakdown --path . --usage-file infracost/${{ env.CLOUD_PROVIDER }}-medium-500m-6t.yml >> /tmp/aws-cost.txt
+          infracost breakdown --path . --usage-file infracost/${{ env.CLOUD_PROVIDER }}-medium-500m-21600g.yml >> /tmp/aws-cost.txt
           
           COST_DETAIL_FILE=/tmp/aws-cost.txt
           cat $COST_DETAIL_FILE
@@ -192,6 +193,7 @@ jobs:
           sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-nats/deploy/provision-nats-aws.tf"
           sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-pravega/deploy/provision-pravega-aws.tf"
           sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-shared/deploy/${{ env.CLOUD_PROVIDER }}/provision-kafka-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g"  "driver-shared/deploy/${{ env.CLOUD_PROVIDER }}/ansible.cfg"
 
       - name: Apply Variables and Secrets for Streaming Provider
         working-directory: driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
@@ -244,7 +246,7 @@ jobs:
         run: |
           echo "[INFO] Provider is AutoMQ"
           cd  driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
-          infracost breakdown --path . --usage-file infracost/${{ env.CLOUD_PROVIDER }}-medium-500m-6t.yml >> /tmp/aws-cost.txt
+          infracost breakdown --path . --usage-file infracost/${{ env.CLOUD_PROVIDER }}-medium-500m-21600g.yml >> /tmp/aws-cost.txt
           
           COST_DETAIL_FILE=/tmp/aws-cost.txt
           cat $COST_DETAIL_FILE

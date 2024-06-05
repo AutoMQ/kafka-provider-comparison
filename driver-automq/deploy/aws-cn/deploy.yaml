@@ -56,74 +56,6 @@
         state: present
 
 
-#- name: Prepare Telemetry
-#  tags: [prepare]
-#  any_errors_fatal: true
-#  hosts: telemetry
-#  connection: ssh
-#  become: true
-#  tasks:
-#    - name: Install Docker
-#      block:
-#        - name: Install dependencies
-#          apt:
-#            pkg:
-#              - ca-certificates
-#              - curl
-#              - gnupg
-#            state: present
-#        - name: Add Docker official GPG key
-#          apt_key:
-#            url: https://download.docker.com/linux/ubuntu/gpg
-#            state: present
-#        - command: dpkg --print-architecture
-#          register: dpkg_arch
-#        - name: Add Docker apt repository
-#          apt_repository:
-#            repo: deb [arch={{ dpkg_arch.stdout }}] https://download.docker.com/linux/ubuntu focal stable
-#            state: present
-#        - name: Install Docker
-#          apt:
-#            pkg:
-#              - docker-ce
-#              - docker-ce-cli
-#              - containerd.io
-#              - docker-compose-plugin
-#            state: present
-#            update_cache: yes
-#
-#
-#- name: Install Telemetry
-#  tags: [install]
-#  any_errors_fatal: true
-#  hosts: telemetry
-#  connection: ssh
-#  become: true
-#  tasks:
-#    - name: Copy Telemetry package
-#      synchronize:
-#        src: "telemetry/"
-#        dest: "/opt/telemetry"
-#    - name: Make install script executable
-#      file:
-#        path: /opt/telemetry/install.sh
-#        mode: 0755
-#
-#
-#- name: Start Telemetry
-#  tags: [run]
-#  any_errors_fatal: true
-#  hosts: telemetry
-#  connection: ssh
-#  become: true
-#  tasks:
-#    - name: Start Telemetry
-#      shell: ./install.sh start
-#      args:
-#        chdir: /opt/telemetry
-#        executable: /bin/bash
-
-
 - name: Format and mount disks for Kafka hosts
   tags: [prepare]
   any_errors_fatal: true
@@ -191,8 +123,6 @@
             node_id: "{{ hostvars[inventory_hostname]['kafka_id'] }}"
             server_ids: "{{ groups.get('server') | map('extract', hostvars, 'kafka_id') | list }}"
             server_addrs: "{{ groups.get('server') | map('extract', hostvars, 'private_ip') | map('regex_replace', '^(.*)$', '\\1:9093') | list }}"
-
-#            telemetry_ip: "{{ groups.get('telemetry') | map('extract', hostvars, 'private_ip') | first | default('') }}"
         - set_fact:
             quorum_servers: "{{ server_ids | zip(server_addrs) | map('join', '@') | join(',') }}"
 
@@ -395,6 +325,3 @@
     - debug:
         msg: "Benchmark clients {{ item }}"
       with_items: "{{ groups['client'] }}"
-#    - debug:
-#        msg: "Grafana: http://{{ item }}:3000"
-#      with_items: "{{ groups['telemetry'] }}"

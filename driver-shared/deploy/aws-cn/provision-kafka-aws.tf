@@ -24,7 +24,7 @@ terraform {
 }
 
 variable "public_key_path" {
-  default = "~/.ssh/${AUTOMQ_ENVID}_aws-cn.pub"
+  default = "~/.ssh/kpc_sshkey.pub"
 }
 
 resource "random_id" "hash" {

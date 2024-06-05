@@ -102,10 +102,10 @@ jobs:
         shell: bash
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/${{ env.STREAMING_PROVIDER }}_${{ env.CLOUD_PROVIDER }}
-          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/${{ env.STREAMING_PROVIDER }}_${{ env.CLOUD_PROVIDER }}.pub
-          chmod 600 ~/.ssh/${{ env.STREAMING_PROVIDER }}_${{ env.CLOUD_PROVIDER }}
-          chmod 644 ~/.ssh/${{ env.STREAMING_PROVIDER }}_${{ env.CLOUD_PROVIDER }}.pub
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/kpc_sshkey
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/kpc_sshkey.pub
+          chmod 600 ~/.ssh/kpc_sshkey
+          chmod 644 ~/.ssh/kpc_sshkey.pub
 
       - name: Install python
         uses: actions/setup-python@v4
@@ -223,10 +223,10 @@ jobs:
         shell: bash
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/${{ env.STREAMING_PROVIDER }}_${{ env.CLOUD_PROVIDER }}
-          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/${{ env.STREAMING_PROVIDER }}_${{ env.CLOUD_PROVIDER }}.pub
-          chmod 600 ~/.ssh/${{ env.STREAMING_PROVIDER }}_${{ env.CLOUD_PROVIDER }}
-          chmod 644 ~/.ssh/${{ env.STREAMING_PROVIDER }}_${{ env.CLOUD_PROVIDER }}.pub
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/kpc_sshkey
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/kpc_sshkey.pub
+          chmod 600 ~/.ssh/kpc_sshkey
+          chmod 644 ~/.ssh/kpc_sshkey.pub
 
       - name: Install python
         uses: actions/setup-python@v4

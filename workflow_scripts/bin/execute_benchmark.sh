@@ -18,8 +18,8 @@
 # - STREAMING_PROVIDER
 # - CLOUD_PROVIDER
 
-SSH_BASE_CMD="ssh -o StrictHostKeyChecking=no -i ~/.ssh/${STREAMING_PROVIDER}_${CLOUD_PROVIDER}"
-SCP_BASE_CMD="scp -o StrictHostKeyChecking=no -i ~/.ssh/${STREAMING_PROVIDER}_${CLOUD_PROVIDER}"
+SSH_BASE_CMD="ssh -o StrictHostKeyChecking=no -i ~/.ssh/kpc_sshkey"
+SCP_BASE_CMD="scp -o StrictHostKeyChecking=no -i ~/.ssh/kpc_sshkey"
 SSH_HOST="$(terraform output --raw user)@$(terraform output --raw client_ssh_host)"
 BENCHMARK_DIR="/opt/benchmark"
 

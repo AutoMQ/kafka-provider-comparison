@@ -6,7 +6,7 @@ on:
     types:
       - completed
   schedule:
-    - cron: '15 5 * * *'
+    - cron: '20 6 * * *'
   workflow_dispatch:
     inputs:
       cloud_provider:
@@ -125,7 +125,7 @@ jobs:
         run: |
           echo "[INFO] Provider is AutoMQ"
           cd  driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
-          infracost breakdown --path . --usage-file infracost/${{ env.CLOUD_PROVIDER }}-medium-500m-21600g.yml --terraform-var-file  driver-automq/deploy/aws-cn/var.tfvars >> /tmp/aws-cost.txt
+          infracost breakdown --path . --usage-file infracost/${{ env.CLOUD_PROVIDER }}-medium-500m-21600g.yml --terraform-var-file  $GITHUB_WORKSPACE/driver-automq/deploy/aws-cn/var.tfvars >> /tmp/aws-cost.txt
           
           COST_DETAIL_FILE=/tmp/aws-cost.txt
           cat $COST_DETAIL_FILE
@@ -246,7 +246,7 @@ jobs:
         run: |
           echo "[INFO] Provider is AutoMQ"
           cd  driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
-          infracost breakdown --path . --usage-file infracost/${{ env.CLOUD_PROVIDER }}-medium-500m-21600g.yml  --terraform-var-file  driver-kafka/deploy/aws-cn/var.tfvars >> /tmp/aws-cost.txt
+          infracost breakdown --path . --usage-file infracost/${{ env.CLOUD_PROVIDER }}-medium-500m-21600g.yml  --terraform-var-file  $GITHUB_WORKSPACE/driver-kafka/deploy/aws-cn/var.tfvars >> /tmp/aws-cost.txt
           
           COST_DETAIL_FILE=/tmp/aws-cost.txt
           cat $COST_DETAIL_FILE

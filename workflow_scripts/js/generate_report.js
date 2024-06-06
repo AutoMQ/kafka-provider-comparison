@@ -161,7 +161,7 @@ const markdownReport = `
   ${replication_factor_automq}
   #### Average Throughput
   Average Throughput [AutoMQ]: ${average_throughput_automq_new} MB/s
-  Average Throughput [Kafka]: ${average_throughput_automq_new} MB/s
+  Average Throughput [Kafka]: ${average_throughput_kafka_new} MB/s
 
   > Cost Estimate Rule: AutoMQ 800MB of storage corresponds to about 25 PUTs and 10 GETs.We have estimated that each GB corresponds to 31.25 PUTs and 12.5 GETs.Assuming a peak throughput of 0.5 GB/s and an average throughput of 0.01 GB/s, with data retention for 7 days, the data volume for 30 days(calculated with 7 days) is:7*24*3600*0.01GB/s = 6048GB = 5.9T ≈ 6T
 

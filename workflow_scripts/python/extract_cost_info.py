@@ -32,10 +32,10 @@ if match:
     usage_cost_str = re.sub(r'[^\d.]', '', match.group(2))
     total_cost_str = re.sub(r'[^\d.]', '', match.group(3))
 
-#     decrease client cost
-    baseline_cost = float(baseline_cost_str) - 286.54
+#     decrease client cost 5*92.93 USD = 464.65 (decrease 5 client's cost)
+    baseline_cost = float(baseline_cost_str) - 464.65
     usage_cost = float(usage_cost_str)
-    total_cost = float(total_cost_str) - 286.54
+    total_cost = float(total_cost_str) - 464.65
 
     print(f"Baseline cost: ${baseline_cost}")
     print(f"Usage cost: ${usage_cost}")

@@ -5,7 +5,7 @@ user            = "ubuntu"
 instance_type = {
   "server"              = "r6i.large"
   "broker"              = "r6i.large"
-  "client"              = "r6i.xlarge"
+  "client"              = "r6i.large"
 }
 
 instance_cnt = {

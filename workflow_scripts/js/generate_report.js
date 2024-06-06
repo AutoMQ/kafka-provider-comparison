@@ -67,9 +67,6 @@ const latencyAvgKafka = jsonDataKafka.aggregatedEndToEndLatencyAvg.toFixed(2);
 const latency95pctKafka = jsonDataKafka.aggregatedEndToEndLatency95pct.toFixed(2);
 const latency99pctKafka = jsonDataKafka.aggregatedEndToEndLatency99pct.toFixed(2);
 
-console.log(extractedDataAutoMQ);
-console.log(extractedDataKafka);
-
 // Extract specific fields from benchmark log json and extracted data
 const {
     workload_config: workload_config_automq,

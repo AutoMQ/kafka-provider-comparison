@@ -25,4 +25,4 @@ producerRate: 128000
 consumerBacklogSizeGB: 0
 warmupDurationMinutes: 10
 testDurationMinutes: 30
-logIntervalMillis: 1000
+logIntervalMillis: 300000

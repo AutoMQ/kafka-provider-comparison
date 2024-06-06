@@ -98,7 +98,16 @@ else:
 # Calculate average throughput
 throughput_pattern = r'WorkloadGenerator - Pub rate \d+\.\d+ msg/s \/ (\d+\.\d+) MB/s'
 throughput_matches = re.findall(throughput_pattern, log_content)
-average_throughput = sum(float(tp) for tp in throughput_matches) / len(throughput_matches) if throughput_matches else 0
+
+average_latency_pattern = r'WorkloadGenerator.*?Pub Latency \(ms\) avg: ([\d.]+)'
+average_latency_matches = re.findall(average_latency_pattern, log_content, re.DOTALL)
+
+p99_latency_pattern = r'WorkloadGenerator.*?Pub Latency \(ms\) avg:.*?99%: ([\d.]+)'
+p99_latency_matches = re.findall(p99_latency_pattern, log_content, re.DOTALL)
+
+average_throughput = round(sum(float(tp) for tp in throughput_matches) / len(throughput_matches) if throughput_matches else 0, 2)
+average_pub_latency = round(sum(float(lat) for lat in average_latency_matches) / len(average_latency_matches) if average_latency_matches else 0, 2)
+p99_pub_latency = round(sum(float(lat) for lat in p99_latency_matches) / len(p99_latency_matches), 2) if p99_latency_matches else 0.00
 
 # Prepare data for output
 extracted_data = {
@@ -107,7 +116,9 @@ extracted_data = {
     "consumer_config": consumer_config,
     "topic_config": topic_config,
     "replication_factor": replicationFactor,
-    "average_throughput": average_throughput
+    "average_throughput": average_throughput,
+    "average_pub_latency": average_pub_latency,
+    "p99_pub_latency": p99_pub_latency
 }
 
 # Write to output file

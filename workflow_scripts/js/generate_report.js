@@ -37,7 +37,7 @@ const path = require('path');
 const readJsonFilesSync = () => {
     const workspaceHome = process.env.WORKSPACE_HOME;
     if (!workspaceHome) {
-        throw new Error('环境变量 WORKSPACE_HOME 未设置');
+        throw new Error('Env WORKSPACE_HOME not set');
     }
 
     const filePaths = [
@@ -77,7 +77,9 @@ const {
     consumer_config: consumer_config_automq,
     topic_config: topic_config_automq,
     replication_factor: replication_factor_automq,
-    average_throughput: average_throughput_automq
+    average_throughput: average_throughput_automq,
+    average_pub_latency: average_pub_latency_automq,
+    p99_pub_latency: p99_pub_latency_automq
 } = extractedDataAutoMQ;
 
 const {
@@ -86,7 +88,9 @@ const {
     consumer_config: consumer_config_kafka,
     topic_config: topic_config_kafka,
     replication_factor: replication_factor_kafka,
-    average_throughput: average_throughput_kafka
+    average_throughput: average_throughput_kafka,
+    average_pub_latency: average_pub_latency_kafka,
+    p99_pub_latency: p99_pub_latency_kafka
 } = extractedDataKafka;
 
 const average_throughput_automq_new=parseFloat(average_throughput_automq).toFixed(2);
@@ -158,7 +162,8 @@ const markdownReport = `
   #### Topic Configuration
   ${topicConfigPairsAutoMQ}
   #### replicationFactor
-  ${replication_factor_automq}
+  [AutoMQ] ${replication_factor_automq}
+  [Kafka] ${replication_factor_kafka}
   #### Average Throughput
   Average Throughput [AutoMQ]: ${average_throughput_automq_new} MB/s
   Average Throughput [Kafka]: ${average_throughput_kafka_new} MB/s
@@ -166,10 +171,10 @@ const markdownReport = `
   > Cost Estimate Rule: AutoMQ 800MB of storage corresponds to about 25 PUTs and 10 GETs.We have estimated that each GB corresponds to 31.25 PUTs and 12.5 GETs.Assuming a peak throughput of 0.5 GB/s and an average throughput of 0.01 GB/s, with data retention for 7 days, the data volume for 30 days(calculated with 7 days) is:7*24*3600*0.01GB/s = 6048GB = 5.9T ≈ 6T
 
 
-  | Kafka Provider | E2E LatencyAvg(ms) | E2E P95 Latency(ms) | E2E P99 Latency(ms) | Baseline Cost | Usage Cost | Total Cost |
-  | ---------------- | ------------------ | ------------------- | ------------------- | ------------- | ---------- | ---------- |
-  | AutoMQ           | ${latencyAvgAutoMQ}      | ${latency95pctAutoMQ}     | ${latency99pctAutoMQ}     | ${baselineCostAutoMQ} | ${usageCostAutoMQ} | ${totalCostAutoMQ} |
-  | Apache Kafka           | ${latencyAvgKafka}      | ${latency95pctKafka}     | ${latency99pctKafka}     | ${baselineCostKafka} | ${usageCostKafka} | ${totalCostKafka} |
+  | Kafka Provider | Pub Latency (ms) avg | Pub Latency (ms) P99 | E2E LatencyAvg(ms) | E2E P95 Latency(ms) | E2E P99 Latency(ms) | Baseline Cost | Usage Cost | Total Cost |
+  | ---------------- | ------------------ |  ------------------ |  ------------------ | ------------------- | ------------------- | ------------- | ---------- | ---------- |
+  | AutoMQ           | ${average_pub_latency_automq}      | ${p99_pub_latency_automq}      |${latencyAvgAutoMQ}      | ${latency95pctAutoMQ}     | ${latency99pctAutoMQ}     | ${baselineCostAutoMQ} | ${usageCostAutoMQ} | ${totalCostAutoMQ} |
+  | Apache Kafka           | ${average_pub_latency_kafka}      |${p99_pub_latency_kafka}      |${latencyAvgKafka}      | ${latency95pctKafka}     | ${latency99pctKafka}     | ${baselineCostKafka} | ${usageCostKafka} | ${totalCostKafka} |
 `;
 
 async function generateAndPostReport() {

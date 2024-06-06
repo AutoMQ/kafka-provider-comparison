@@ -84,7 +84,7 @@ runs:
       working-directory: driver-shared/deploy/${{ inputs.cloud_provider }}
       shell: bash
       run: |
-        if [ "${{ inputs.uninstall }}" == "true" ]; then
+        if [ "${{ inputs.uninstall }}" = "true" ]; then
           terraform destroy --auto-approve -var-file $GITHUB_WORKSPACE/driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/var.tfvars
         fi     
 
@@ -92,8 +92,10 @@ runs:
     - name: Terraform Plan
       working-directory: driver-shared/deploy/${{ inputs.cloud_provider }}
       shell: bash
-      run: terraform plan -var-file $GITHUB_WORKSPACE/driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/var.tfvars
-
+      run: |
+        if [ "${{ inputs.uninstall }}" = "false" ]; then
+          terraform plan -var-file $GITHUB_WORKSPACE/driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/var.tfvars
+        fi
 
     - name: Apply terraform
       working-directory: driver-shared/deploy/${{ inputs.cloud_provider }}

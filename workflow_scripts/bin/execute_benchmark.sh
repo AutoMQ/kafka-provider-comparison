@@ -30,7 +30,7 @@ $SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/benchmark-worker.log"
 
 # Execute the benchmark test
 ## Tips: Pay attention that driver.yaml is under /driver-${STREAMING_PROVIDER}
-$SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR && sudo ./bin/benchmark -d ./driver-${STREAMING_PROVIDER}/driver.yaml ./workloads/vs/fast-tail-read-500m.yaml" > /dev/null
+$SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR && sudo ./bin/benchmark -d ./driver-${STREAMING_PROVIDER}/driver.yaml ./workloads/vs/fast-tail-read-500m.yaml"
 
 # Check if new result files have been generated
 TIMEOUT=7200  # 2-hour timeout

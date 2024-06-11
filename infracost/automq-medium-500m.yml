@@ -330,12 +330,10 @@ resource_type_default_usage:
   aws_s3_bucket:
     object_tags: 10000000 # Total object tags. Only for AWS provider V3.
     ## AutoMQ: The estimation method is that 800MB of storage corresponds to 25 PUTs and 10 GETs.
-    ## We have estimated that each GB corresponds to 31.25 PUTs and 12.5 GETs.
-    ## Assuming a peak throughput of 0.5 GB/s and an average throughput of 0.0025 GB/s, with data retention for 24hours, the data volume is 3*24*3600*500 MB/s=126562 gb
     standard: # Usages of S3 Standard:
-      storage_gb: 126562 # Total storage in GB. AutoMQ: Estimated by average throughput 500 MB/s
-      monthly_tier_1_requests: 3955063 # Monthly PUT, COPY, POST, LIST requests (Tier 1).  Average 31.25*126562
-      monthly_tier_2_requests: 1582025 # Monthly GET, SELECT, and all other requests (Tier 2).  Average 12.5*126562
+      storage_gb: 42188 # Total storage in GB. AutoMQ: Estimated by average throughput 500 MB/s
+      monthly_tier_1_requests: 381801600 # Monthly PUT, COPY, POST, LIST requests (Tier 1).
+      monthly_tier_2_requests: 164851200 # Monthly GET, SELECT, and all other requests (Tier 2).
       ### AutoMQ: There is no select operation
       monthly_select_data_scanned_gb: 0 # Monthly data scanned by S3 Select in GB.
       monthly_select_data_returned_gb: 0 # Monthly data returned by S3 Select in GB.

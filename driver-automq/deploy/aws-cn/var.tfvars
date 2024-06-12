@@ -18,6 +18,6 @@ instance_cnt = {
 ebs_volume_type = "gp3"
 ebs_volume_size = 10
 ebs_iops = 3000
-ebs_throughput = 500
+ebs_throughput = 125
 
 

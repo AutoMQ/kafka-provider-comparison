@@ -50,18 +50,26 @@ Kafka Provider Comparison (KPC) 是基于 OpenMessaging Benchmark 的代码构�
 在跟目录下新建 `driver-foo` 模块，该模块 `/deploy/aws-cn` 目录下必须包含如下关键文件:
    - var.tfvars: 默认情况下，为了保证workload以及生产、消费模式的固定，我们暂时只开放了如下值的自定义。如果这些配置不适合你的 Kafka Provider，你可以提交新的 PR 并且说明需要开放哪些新的值设置，以及原因。
    - deploy.yaml: ansible-playbook 的配置文件，用于部署具体的 Kafka Provider
-   - cost_explanation.md: 用于解释成本是如何计算的文档。不同 Kafka Provider 的实现不方式不同，导致一些计算、存储服务的用量上会有明显差异。为了保证公平、公开性，请提供详细的成本计算逻辑说明。
-   - infracost usage config yaml: 在根目录的 infracost 下我们提供了默认的 template-medium-500m-1512g 模板文件，也是 infracost medium 规模默认的用量配置文件。你可以根据你的 Kafka Provider 的实际情况来修改这个文件，以便更准确的计算用量成本。并将这些修改项在 cost_explanation.md 中进行说明。
+   - cost_explanation.md: 用于解释成本是如何计算的文档。不同 Kafka Provider 的实现不方式不同，导致一些计算、存储服务的用量上会有明显差异。为了保证公平、公开性，请提供详细的成本用量计算逻辑说明。该部分说明可以参考工程目录下 `cost-explanation` 下已有的文件。
+   - infracost usage config yaml: 在根目录的 infracost 下我们提供了默认的 `template-medium-500m` 模板文件，也是 infracost medium 规模默认的用量配置文件。你可以根据你的 Kafka Provider 的实际情况来修改这个文件，以便更准确的计算用量成本。并将这些修改项在 `cost-explanation/foo.md` 中进行公开说明。
 
 您可以 Fork 我们的代码并且在你本地进行测试。当你测试满意后，您可以提交 PR 到我们的仓库。我们会在收到 PR 后进行 Review 并且合并。合并后我们会检查你的代码在我们 workflow 上执行地准确性，如果有问题我们会在 PR 上进行反馈，并且在 workflow 中暂时关闭你的 Kafka Provider 的执行和对比(针对新的 kafka provider) 或者 回退历史版本。
 
-> Tips: 当前仅支持在 aws-cn 进行对比，后续会支持更多云厂商。测试允许用户使用不同数量和规格的机器，但是要求满足最低的平均吞吐要求，否则结果将不予以展示。使用较高的机器规格会提高性能表现，但是也会导致成本的提升。
+> Tips: 当前仅支持在 aws-cn 的 cn-northwest-1 进行对比，后续会支持更多云厂商和地域。测试允许用户使用不同数量和规格的机器。使用较高的机器规格会提高性能表现，但是也会导致成本的提升。
+
+### 如何贡献没有开源的 Kafka Provider
+KPC 也支持没有开源的 Kafka Provider 的对比。如果你的 Kafka Provider 没有开源，可以提供一个加密过或者经过代码混淆的基础镜像通过贡献新的 Kafka Provider 在我们的环境中进行部署和测试。针对那种当前没有开源也没有提供镜像的 Kafka Provider，例如 Confluent/Aiven 等，我们也会利用他们提供的 terraform provider 来进行部署。
 
 ### 固化的 Workload 配置
 为了保证对比的公平性，我们固化了一套比较有代表性的 Workload，Producer、Consumer 配置 [tail-read-500m.yaml](workloads/vs/fast-tail-read-500m.yaml)。该配置支持产生理论峰值 500 MB/s 的写入流量。
 
 ### 成本估算
-成本估算的难点在于云服务用量的估算。不同产品的实现存在差异，导致用量成本很难精确估算。但是，通过将存储的实现分成如下几种模式并且配合一个前提假设，我们即可相对公平的来计算用量成本。
+#### 成本估算的挑战与解法
+对于固定规模的云服务的资源成本的开销是可以明确计算的。而成本估算的难点在于云服务用量的估算。云服务针对不同服务的用量会进行计量和收费。例如S3的API调用、存储空间等。不同产品的实现存在差异，导致用量成本的估算是一件非常有挑战的事情。为了保证估算的准确和公平性，我们会在每个 Kafka Provider 的 driver 目录下提供一个以 kafka provider name 命名的 markdown 文件，用于解释成本是如何计算的。不同 Kafka Provider 的实现方式不同，导致一些计算、存储服务的用量上会有明显差异。为了保证公平、公开性，我们会保证所有的 kafka provider 针对计算、存储的成本估算均供详细的成本计算逻辑说明。以下是不同 Kafka Provider 成本估算的说明:
+
+- [AutoMQ](cost-explanation/automq.md)
+- [Apache Kafka](cost-explanation/kafka.md)
+
 
 
 

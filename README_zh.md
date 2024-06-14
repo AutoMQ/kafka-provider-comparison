@@ -53,6 +53,8 @@ Kafka Provider Comparison (KPC) 是基于 OpenMessaging Benchmark 的代码构�
    - cost_explanation.md: 用于解释成本是如何计算的文档。不同 Kafka Provider 的实现不方式不同，导致一些计算、存储服务的用量上会有明显差异。为了保证公平、公开性，请提供详细的成本用量计算逻辑说明。该部分说明可以参考工程目录下 `cost-explanation` 下已有的文件。
    - infracost usage config yaml: 在根目录的 infracost 下我们提供了默认的 `template-medium-500m` 模板文件，也是 infracost medium 规模默认的用量配置文件。你可以根据你的 Kafka Provider 的实际情况来修改这个文件，以便更准确的计算用量成本。并将这些修改项在 `cost-explanation/foo.md` 中进行公开说明。
 
+完成上述步骤后你需要在 `.github/workflows` 下的三个文件中按照其他 Kafka Provider 的写法新增一个 Job 来保证 Workflow 定时执行时也可以执行你的 Kafka Provider 的 Benchmark 流程。如果你对如何贡献有任何疑问，欢迎在本项目下提交 issue 或者加入我们的 [Slack](https://join.slack.com/t/automq/shared_invite/zt-29h17vye9-thf31ebIVL9oXuRdACnOIA) 频道进行讨论。
+
 您可以 Fork 我们的代码并且在你本地进行测试。当你测试满意后，您可以提交 PR 到我们的仓库。我们会在收到 PR 后进行 Review 并且合并。合并后我们会检查你的代码在我们 workflow 上执行地准确性，如果有问题我们会在 PR 上进行反馈，并且在 workflow 中暂时关闭你的 Kafka Provider 的执行和对比(针对新的 kafka provider) 或者 回退历史版本。
 
 > Tips: 当前仅支持在 aws-cn 的 cn-northwest-1 进行对比，后续会支持更多云厂商和地域。测试允许用户使用不同数量和规格的机器。使用较高的机器规格会提高性能表现，但是也会导致成本的提升。

@@ -89,3 +89,4 @@ KPC 也支持没有开源的 Kafka Provider 的对比。如果你的 Kafka Provi
 - 新增 Confluent/Aiven/Redpanda/WarpStream 等 Kafka Provider 的横向自动化对比
 - 支持弹性能力的比较项，即 Client 需要多久从 扩缩容行为中完成回复
 - 新增Kafka兼容性相关测试
+- 更加美观和可读的横向对比报告

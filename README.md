@@ -87,5 +87,6 @@ We plan to trigger the workflow to generate a comparison report every Monday at 
 
 ## Roadmap
 
-- Add horizontal automated comparisons for Kafka Providers such as Confluent/Aiven/Redpanda
+- Add horizontal automated comparisons for Kafka Providers such as Confluent/Aiven/Redpanda/WarpStream/Pulsar
 - Support comparison of elasticity, i.e., how long it takes for the Client to recover from scaling actions
+- Add tests related to Kafka compatibility.

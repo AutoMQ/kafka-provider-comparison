@@ -17,10 +17,10 @@ All execution logic of the comparison platform is encapsulated in GitHub Actions
 1. GitHub Actions meet the scheduled trigger conditions and trigger the Workflow execution.
 2. The Benchmark processes of multiple Kafka Providers included in the Workflow will be executed in parallel.
 3. Each Benchmark Provider process includes the following sequential sub-stages, executed in order. Different Kafka Providers will be evaluated simultaneously.
-    1. Install: Initialize cloud resources on AWS according to the Terraform configuration file, check out the code, install dependencies, and then use the Ansible playbook to install the Kafka Provider. This stage will also calculate the cost based on the Terraform configuration file, as part of the final Comparison Report.
-    2. Benchmark: This stage depends on the Install stage and will be triggered after its completion. This stage mainly uses the information from the Terraform Output to remotely log in to the cloud Client machine and execute the OpenMessaging Benchmark test.
-    3. Generate Report: The Benchmark result files executed on the cloud Client will be copied to the GitHub Runner machine, the content will be parsed to generate the final Report content, and displayed in [issue-1](https://github.com/AutoMQ/kafka-provider-comparison/issues/1)
-    4. Uninstall: This stage depends on the Benchmark stage and will be triggered after its completion. This stage will clean up cloud resources, including deleting the cloud Client machine and the Kafka Provider cluster on the cloud.
+   1. Install: Initialize cloud resources on AWS according to the Terraform configuration file, check out the code, install dependencies, and then use the Ansible playbook to install the Kafka Provider. This stage will also calculate the cost based on the Terraform configuration file, as part of the final Comparison Report.
+   2. Benchmark: This stage depends on the Install stage and will be triggered after its completion. This stage mainly uses the information from the Terraform Output to remotely log in to the cloud Client machine and execute the OpenMessaging Benchmark test.
+   3. Generate Report: The Benchmark result files executed on the cloud Client will be copied to the GitHub Runner machine, the content will be parsed to generate the final Report content, and displayed in [issue-1](https://github.com/AutoMQ/kafka-provider-comparison/issues/1)
+   4. Uninstall: This stage depends on the Benchmark stage and will be triggered after its completion. This stage will clean up cloud resources, including deleting the cloud Client machine and the Kafka Provider cluster on the cloud.
 
 ## Benchmark Report Description
 
@@ -93,3 +93,4 @@ We plan to trigger the workflow to generate a comparison report every Monday at 
 - Support comparison of elasticity, i.e., how long it takes for the Client to recover from scaling actions
 - Add tests related to Kafka compatibility.
 - More visually appealing and readable comparative reports.
+

@@ -62,7 +62,7 @@
     - shell: tuned-adm profile latency-performance
 
     - name: Get list of driver config files
-      raw: ls -1 /opt/benchmark/driver-msk/deploy/aws-cn/*.yaml
+      raw: ls -1 /opt/benchmark/driver-msk/*.yaml
       register: drivers_list
       tags: [client-code]
 

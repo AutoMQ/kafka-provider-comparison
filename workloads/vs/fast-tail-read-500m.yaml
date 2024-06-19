@@ -23,6 +23,6 @@ consumerPerSubscription: 4
 producersPerTopic: 8
 producerRate: 128000
 consumerBacklogSizeGB: 0
-warmupDurationMinutes: 10
-testDurationMinutes: 15
+warmupDurationMinutes: 0
+testDurationMinutes: 1
 logIntervalMillis: 15000

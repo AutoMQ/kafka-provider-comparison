@@ -1,0 +1,168 @@
+name: "Execute Shared Steps"
+inputs:
+  streaming_provider:
+    required: true
+  automq_access_key:
+    required: true
+  automq_secret_key:
+    required: true
+  tf_backend_bucket:
+    required: true
+  tf_backend_key:
+    required: true
+  region:
+    required: true
+  cloud_provider:
+    required: true
+  ssh_private_key:
+    required: true
+  ssh_public_key:
+    required: true
+  infra_cost_api_key:
+    required: true
+  uninstall:
+    required: true
+  execute_benchmark:
+    required: true
+outputs:
+  benchmark_result_json_msk:
+    value: ${{ steps.output_benchmark_result.outputs.benchmark_result_json_msk }}
+  extracted_data_msk:
+    value: ${{ steps.extract_final_result.outputs.extracted_data_msk }}
+  baseline_cost_msk:
+    value: ${{ steps.extract_costs.outputs.baseline_cost_msk }}
+  usage_cost_msk:
+    value: ${{ steps.extract_costs.outputs.usage_cost_msk }}
+  total_cost_msk:
+    value: ${{ steps.extract_costs.outputs.total_cost_msk }}
+
+runs:
+  using: "composite"
+  steps:
+    ## reference: https://www.jameskerr.blog/posts/sharing-steps-in-github-action-workflows/
+
+    - name: Read and extract costs from file
+      id: extract_costs
+      shell: bash
+      run: |
+        python3 workflow_scripts/python/extract_cost_info.py
+      env:
+        STREAMING_PROVIDER: ${{ inputs.streaming_provider }}
+
+    - name: Output Costs
+      shell: bash
+      run: |
+        if [ "${{ inputs.streaming_provider }}" = "msk" ]; then
+          echo "Baseline cost: ${{ steps.extract_costs.outputs.baseline_cost_msk }}"
+          echo "Usage cost: ${{ steps.extract_costs.outputs.usage_cost_msk }}"
+          echo "Total cost: ${{ steps.extract_costs.outputs.total_cost_msk }}"
+        fi
+
+    - name: Setup terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Initialize terraform
+      working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
+      shell: bash
+      run: terraform init
+
+    - name: Uninstall Cloud Infra
+      working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
+      shell: bash
+      run: |
+        if [ "${{ inputs.uninstall }}" = "true" ]; then
+          terraform destroy --auto-approve -var-file $GITHUB_WORKSPACE/driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/var.tfvars
+        fi     
+
+
+    - name: Terraform Plan
+      working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
+      shell: bash
+      run: |
+        if [ "${{ inputs.uninstall }}" = "false" ]; then
+          terraform plan -var-file $GITHUB_WORKSPACE/driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/var.tfvars
+        fi
+
+    - name: Apply terraform
+      working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
+      shell: bash
+      run: |
+        if [ "${{ inputs.uninstall }}" = "false" ]; then
+          terraform apply --auto-approve -var-file $GITHUB_WORKSPACE/driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/var.tfvars
+        fi
+
+
+    - name: Install ansible
+      shell: bash
+      run: |
+        if [[ "${{ inputs.uninstall }}" = "false" && "${{ inputs.execute_benchmark }}" = "false" ]]; then
+          python -m pip install --upgrade pip
+          python -m pip install --user ansible
+          python -m pip install --user jmespath
+        fi
+
+
+
+
+    - name: Install Streaming Cluster
+      working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
+      shell: bash
+      run: |
+        if [[ "${{ inputs.uninstall }}" = "false" && "${{ inputs.execute_benchmark }}" = "false" ]]; then
+              unzip terraform-inventory_v0.10_linux_amd64.zip
+              mv terraform-inventory /usr/local/bin
+              ansible-playbook   --user ubuntu -i hosts.ini --inventory `which terraform-inventory` $GITHUB_WORKSPACE/driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/deploy.yaml 
+        fi
+      
+
+    - name: Execute Benchmark
+      working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
+      shell: bash
+      run: |
+        if [ "${{ inputs.execute_benchmark }}" = "true" ]; then
+          chmod +x $GITHUB_WORKSPACE/workflow_scripts/bin/execute_benchmark.sh
+          sh $GITHUB_WORKSPACE/workflow_scripts/bin/execute_benchmark.sh       
+        fi
+      env:
+        STREAMING_PROVIDER: ${{ inputs.streaming_provider }}
+        CLOUD_PROVIDER: ${{ inputs.cloud_provider }}
+
+
+
+    - name: Output Benchmark Result
+      shell: bash
+      id: output_benchmark_result
+      run: |
+        if [ "${{ inputs.execute_benchmark }}" = "true" ]; then
+          sudo apt-get install jq
+          JSON_FILE=$(ls /tmp/*.json | head -n 1)
+          extracted_benchmark_output=$(cat $JSON_FILE)
+          echo "benchmark_result_json_$STREAMING_PROVIDER<<EOF" >> $GITHUB_OUTPUT
+          echo "$extracted_benchmark_output" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        fi
+      env:
+        STREAMING_PROVIDER: ${{ inputs.streaming_provider }}
+
+    - name: Install python dependencies
+      shell: bash
+      run: |
+        if [ "${{ inputs.execute_benchmark }}" = "true" ]; then
+          python -m pip install --upgrade pip
+          pip install regex 
+        fi
+
+
+    - name: Extract Information from Benchmark Worker Log
+      shell: bash
+      id: extract_final_result
+      run: |
+        if [ "${{ inputs.execute_benchmark }}" = "true" ]; then
+          python3 workflow_scripts/python/extract_info_from_benchmark.py
+          extracted_data=$(cat /tmp/extracted_data)
+          echo "extracted_data_$STREAMING_PROVIDER<<EOF_MARKER" >> $GITHUB_OUTPUT
+          echo "$extracted_data" >> $GITHUB_OUTPUT
+          echo "EOF_MARKER" >> $GITHUB_OUTPUT
+        fi
+      env:
+        STREAMING_PROVIDER: ${{ inputs.streaming_provider }}

@@ -44,15 +44,20 @@ const readJsonFilesSync = () => {
         'workflow_scripts/js/BENCHMARK_RESULT_AUTOMQ.info',
         'workflow_scripts/js/BENCHMARK_RESULT_KAFKA.info',
         'workflow_scripts/js/EXTRACTED_DATA_AUTOMQ.info',
-        'workflow_scripts/js/EXTRACTED_DATA_KAFKA.info'
+        'workflow_scripts/js/EXTRACTED_DATA_KAFKA.info',
+        'workflow_scripts/js/BENCHMARK_RESULT_MSK.info',
+        'workflow_scripts/js/EXTRACTED_DATA_MSK.info'
     ].map(file => path.join(workspaceHome, file));
 
     const jsonDataAutoMQ = readFileContentSync(filePaths[0]);
     const jsonDataKafka = readFileContentSync(filePaths[1]);
     const extractedDataAutoMQ = readFileContentSync(filePaths[2]);
     const extractedDataKafka = readFileContentSync(filePaths[3]);
+    const jsonDataMSK = readFileContentSync(filePaths[4]);
+    const extractedDataMSK = readFileContentSync(filePaths[5]);
 
-    return {jsonDataAutoMQ, jsonDataKafka, extractedDataAutoMQ, extractedDataKafka};
+
+    return {jsonDataAutoMQ, jsonDataKafka, extractedDataAutoMQ, extractedDataKafka,jsonDataMSK,extractedDataMSK};
 };
 
 const {jsonDataAutoMQ, jsonDataKafka, extractedDataAutoMQ, extractedDataKafka} = readJsonFilesSync();
@@ -66,6 +71,10 @@ const latency99pctAutoMQ = jsonDataAutoMQ.aggregatedEndToEndLatency99pct.toFixed
 const latencyAvgKafka = jsonDataKafka.aggregatedEndToEndLatencyAvg.toFixed(2);
 const latency95pctKafka = jsonDataKafka.aggregatedEndToEndLatency95pct.toFixed(2);
 const latency99pctKafka = jsonDataKafka.aggregatedEndToEndLatency99pct.toFixed(2);
+// --- MSK
+const latencyAvgMSK = jsonDataMSK.aggregatedEndToEndLatencyAvg.toFixed(2);
+const latency95pctMSK = jsonDataMSK.aggregatedEndToEndLatency95pct.toFixed(2);
+const latency99pctMSK = jsonDataMSK.aggregatedEndToEndLatency99pct.toFixed(2);
 
 // Extract specific fields from benchmark log json and extracted data
 const {
@@ -90,8 +99,21 @@ const {
     p99_pub_latency: p99_pub_latency_kafka
 } = extractedDataKafka;
 
+const {
+    workload_config: workload_config_msk,
+    producer_config: producer_config_msk,
+    consumer_config: consumer_config_msk,
+    topic_config: topic_config_msk,
+    replication_factor: replication_factor_msk,
+    average_throughput: average_throughput_msk,
+    average_pub_latency: average_pub_latency_msk,
+    p99_pub_latency: p99_pub_latency_msk
+} = extractedDataMSK;
+
+
 const average_throughput_automq_new=parseFloat(average_throughput_automq).toFixed(2);
 const average_throughput_kafka_new=parseFloat(average_throughput_kafka).toFixed(2);
+const average_throughput_msk_new=parseFloat(average_throughput_msk).toFixed(2);
 
 
 const extractWorkloadConfig = (config) => {
@@ -139,6 +161,10 @@ const totalCostAutoMQ = process.env.TOTAL_COST_AUTOMQ;
 const baselineCostKafka = process.env.BASELINE_COST_KAFKA;
 const usageCostKafka = process.env.USAGE_COST_KAFKA;
 const totalCostKafka = process.env.TOTAL_COST_KAFKA
+// ---- MSK
+const baselineCostMSK = process.env.BASELINE_COST_MSK;
+const usageCostMSK = process.env.USAGE_COST_MSK;
+const totalCostMSK = process.env.TOTAL_COST_MSK
 
 // Get current date and time
 const now = new Date();
@@ -164,6 +190,7 @@ const markdownReport = `
   #### Average Throughput
   Average Throughput [AutoMQ]: ${average_throughput_automq_new} MB/s
   Average Throughput [Kafka]: ${average_throughput_kafka_new} MB/s
+  Average Throughput [AWS MSK]: ${average_throughput_msk_new} MB/s
 
   > Cost Estimate Rule: Check explanation under cost-explanation directory of this repository
 
@@ -172,6 +199,7 @@ const markdownReport = `
   | ---------------- | ------------------ |  ------------------ |  ------------------ | ------------------- | ------------------- | ------------- | ---------- | ---------- |
   | AutoMQ           | ${average_pub_latency_automq}      | ${p99_pub_latency_automq}      |${latencyAvgAutoMQ}      | ${latency95pctAutoMQ}     | ${latency99pctAutoMQ}     | ${baselineCostAutoMQ} | ${usageCostAutoMQ} | ${totalCostAutoMQ} |
   | Apache Kafka           | ${average_pub_latency_kafka}      |${p99_pub_latency_kafka}      |${latencyAvgKafka}      | ${latency95pctKafka}     | ${latency99pctKafka}     | ${baselineCostKafka} | ${usageCostKafka} | ${totalCostKafka} |
+  | AWS MSK           | ${average_pub_latency_msk}      |${p99_pub_latency_msk}      |${latencyAvgMSK}      | ${latency95pctMSK}     | ${latency99pctMSK}     | ${baselineCostMSK} | ${usageCostMSK} | ${totalCostMSK} |
 `;
 
 async function generateAndPostReport() {

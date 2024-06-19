@@ -420,8 +420,8 @@ jobs:
           echo '{}' > $GITHUB_WORKSPACE/workflow_scripts/js/EXTRACTED_DATA_KAFKA.info
           
           
-          echo '${{ needs.prepare_kafka_env.outputs.benchmark_result_json_msk }}' > $GITHUB_WORKSPACE/workflow_scripts/js/BENCHMARK_RESULT_MSK.info
-          echo '${{ needs.prepare_kafka_env.outputs.extracted_data_msk }}' > $GITHUB_WORKSPACE/workflow_scripts/js/EXTRACTED_DATA_MSK.info
+          echo '${{ needs.prepare_msk_env.outputs.benchmark_result_json_msk }}' > $GITHUB_WORKSPACE/workflow_scripts/js/BENCHMARK_RESULT_MSK.info
+          echo '${{ needs.prepare_msk_env.outputs.extracted_data_msk }}' > $GITHUB_WORKSPACE/workflow_scripts/js/EXTRACTED_DATA_MSK.info
 
 
           export WORKSPACE_HOME=$GITHUB_WORKSPACE

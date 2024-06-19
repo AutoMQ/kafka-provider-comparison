@@ -1,12 +1,22 @@
 variable "instance_type" {
   type = map(string)
+  default = {
+    "client" = "r6i.large"
+  }
 }
 
 variable "public_key_path" {
   default = "~/.ssh/kpc_sshkey.pub"
 }
 
-variable "user" {}
+variable "aws_cn" {
+  type    = bool
+  default = true
+}
+
+variable "user" {
+  default = "ubuntu"
+}
 
 
 variable "key_name" {
@@ -16,12 +26,21 @@ variable "key_name" {
 
 variable "instance_cnt" {
   type = map(string)
+  default = {
+    "client" = 1
+  }
 }
-variable "ami" {}
+variable "ami" {
+  default = "ami-04c77a27ae5156100"
+}
 
 variable "monitoring" {
   type    = bool
   default = true
+}
+
+variable "region" {
+  default = "cn-northwest-1"
 }
 
 terraform {
@@ -30,6 +49,13 @@ terraform {
       source  = "hashicorp/aws"
       version = "5.26.0"
     }
+  }
+
+  backend "s3" {
+    ## terraform s3 backend configuration  ${TF_BACKEND_BUCKET}
+    bucket = "automq-vs-bucket"
+    key    = "debugws"
+    region = "cn-northwest-1"
   }
 }
 
@@ -51,6 +77,91 @@ locals {
   ]
 }
 
+
+#   ref:https://docs.aws.amazon.com/zh_cn/msk/latest/developerguide/create-client-iam-role.html
+
+resource "aws_iam_role" "benchmark_role_s3" {
+  name = "kafka_provider_comparison_role_s3_msk"
+
+  assume_role_policy = jsonencode({
+    Version   = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = var.aws_cn ? "ec2.amazonaws.com.cn" : "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  inline_policy {
+    name = "kafka_provider_comparison_policy_msk"
+
+    policy = jsonencode({
+      "Version" : "2012-10-17",
+      "Statement" : [
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "kafka-cluster:Connect",
+            "kafka-cluster:AlterCluster",
+            "kafka-cluster:DescribeCluster"
+          ],
+          Resource = var.aws_cn ? [
+            "arn:aws-cn:kafka:${var.region}:*:cluster/${aws_msk_cluster.mskcluster.cluster_name}/*"
+          ] : [
+            "arn:aws:kafka:${var.region}:*:cluster/${aws_msk_cluster.mskcluster.cluster_name}/*"
+          ]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "kafka-cluster:*Topic*",
+            "kafka-cluster:WriteData",
+            "kafka-cluster:ReadData"
+          ],
+          Resource = var.aws_cn ? [
+            "arn:aws-cn:kafka:${var.region}:*:topic/${aws_msk_cluster.mskcluster.cluster_name}/*"
+          ] : [
+            "arn:aws:kafka:${var.region}:*:topic/${aws_msk_cluster.mskcluster.cluster_name}/*"
+          ]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "kafka-cluster:AlterGroup",
+            "kafka-cluster:DescribeGroup"
+          ],
+          Resource = var.aws_cn ? [
+            "arn:aws-cn:kafka:${var.region}:*:group/${aws_msk_cluster.mskcluster.cluster_name}/*"
+          ] : [
+            "arn:aws:kafka:${var.region}:*:group/${aws_msk_cluster.mskcluster.cluster_name}/*"
+          ]
+        }
+      ]
+    })
+  }
+
+  tags = {
+    Name      = "Kafka_Provider_Comparison_IAM_Role_msk"
+    Benchmark = "Kafka_Provider_Comparison_msk"
+  }
+}
+
+resource "aws_iam_instance_profile" "benchmark_instance_profile_msk" {
+  name = "kafka_provider_comparison_instance_profile_msk"
+
+  role = aws_iam_role.benchmark_role_s3.name
+
+  tags = {
+    Name      = "Kafka_Provider_Comparison_IAM_InstanceProfile_msk"
+    Benchmark = "Kafka_Provider_Comparison_msk"
+  }
+}
+
+
 resource "aws_instance" "client" {
   ami                    = var.ami
   instance_type          = var.instance_type["client"]
@@ -58,6 +169,8 @@ resource "aws_instance" "client" {
   subnet_id              = element(local.subnet_ids, count.index % length(local.subnet_ids))
   vpc_security_group_ids = [aws_security_group.sg.id]
   count                  = var.instance_cnt["client"]
+
+  iam_instance_profile = aws_iam_instance_profile.benchmark_instance_profile_msk.name
 
   root_block_device {
     volume_type = "gp3"
@@ -107,9 +220,9 @@ data "aws_availability_zones" "azs" {
 }
 
 resource "aws_subnet" "subnet_az1" {
-  availability_zone = data.aws_availability_zones.azs.names[0]
-  cidr_block        = "192.168.0.0/24"
-  vpc_id            = aws_vpc.benchmark_vpc.id
+  availability_zone       = data.aws_availability_zones.azs.names[0]
+  cidr_block              = "192.168.0.0/24"
+  vpc_id                  = aws_vpc.benchmark_vpc.id
   map_public_ip_on_launch = true
   tags = {
     Benchmark = "Kafka_Provider_Comparison_zhaoxiautomq"
@@ -117,9 +230,9 @@ resource "aws_subnet" "subnet_az1" {
 }
 
 resource "aws_subnet" "subnet_az2" {
-  availability_zone = data.aws_availability_zones.azs.names[1]
-  cidr_block        = "192.168.1.0/24"
-  vpc_id            = aws_vpc.benchmark_vpc.id
+  availability_zone       = data.aws_availability_zones.azs.names[1]
+  cidr_block              = "192.168.1.0/24"
+  vpc_id                  = aws_vpc.benchmark_vpc.id
   map_public_ip_on_launch = true
   tags = {
     Benchmark = "Kafka_Provider_Comparison_zhaoxiautomq"
@@ -127,9 +240,9 @@ resource "aws_subnet" "subnet_az2" {
 }
 
 resource "aws_subnet" "subnet_az3" {
-  availability_zone = data.aws_availability_zones.azs.names[2]
-  cidr_block        = "192.168.2.0/24"
-  vpc_id            = aws_vpc.benchmark_vpc.id
+  availability_zone       = data.aws_availability_zones.azs.names[2]
+  cidr_block              = "192.168.2.0/24"
+  vpc_id                  = aws_vpc.benchmark_vpc.id
   map_public_ip_on_launch = true
   tags = {
     Benchmark = "Kafka_Provider_Comparison_zhaoxiautomq"
@@ -160,7 +273,7 @@ resource "aws_security_group" "sg" {
     from_port   = 0
     to_port     = 65535
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["192.168.0.0/22"]
   }
 
   # outbound internet access
@@ -181,7 +294,7 @@ resource "aws_security_group" "sg" {
 resource "aws_msk_cluster" "mskcluster" {
   cluster_name           = "mskcluster"
   kafka_version          = "3.7.x.kraft"
-  number_of_broker_nodes = 15
+  number_of_broker_nodes = 3
 
   broker_node_group_info {
     instance_type  = "kafka.m5.large"
@@ -201,6 +314,9 @@ resource "aws_msk_cluster" "mskcluster" {
 
   encryption_info {
     encryption_at_rest_kms_key_arn = aws_kms_key.kms.arn
+    encryption_in_transit{
+      client_broker                  = "PLAINTEXT"
+    }
   }
 
   open_monitoring {
@@ -214,6 +330,12 @@ resource "aws_msk_cluster" "mskcluster" {
     }
   }
 
+  ## https://github.com/hashicorp/terraform-provider-aws/issues/24914
+  lifecycle {
+    ignore_changes = [
+      client_authentication,
+    ]
+  }
 
   tags = {
     Name      = "Openmessaging_Benchmark_VPC_msk"
@@ -222,9 +344,9 @@ resource "aws_msk_cluster" "mskcluster" {
 }
 
 
-output "bootstrap_brokers_tls" {
-  description = "TLS connection host:port pairs"
-  value       = aws_msk_cluster.mskcluster.bootstrap_brokers_tls
+output "bootstrap_brokers" {
+  description = "plaintext connection host:port pairs"
+  value       = aws_msk_cluster.mskcluster.bootstrap_brokers
 }
 
 

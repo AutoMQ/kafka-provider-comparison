@@ -378,7 +378,8 @@ jobs:
   generate_report:
     name: Generate Report
     runs-on: ubuntu-latest
-    needs: [ prepare_automq_env, prepare_kafka_env ]
+#    needs: [ prepare_automq_env, prepare_kafka_env,prepare_msk_env ]
+    needs: [ prepare_msk_env ]
     steps:
       - name: Checkout Benchmark Code
         uses: actions/checkout@v3

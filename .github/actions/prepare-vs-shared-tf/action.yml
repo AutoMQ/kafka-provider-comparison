@@ -109,6 +109,7 @@ runs:
       shell: bash
       run: |
         if [[ "${{ inputs.uninstall }}" = "false" && "${{ inputs.execute_benchmark }}" = "false" ]]; then
+              wget https://github.com/adammck/terraform-inventory/releases/download/v0.10/terraform-inventory_v0.10_linux_amd64.zip
               unzip terraform-inventory_v0.10_linux_amd64.zip
               mv terraform-inventory /usr/local/bin
               ansible-playbook   --user ubuntu -i hosts.ini --inventory `which terraform-inventory` $GITHUB_WORKSPACE/driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/deploy.yaml 

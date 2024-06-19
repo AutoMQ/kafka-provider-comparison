@@ -362,7 +362,7 @@ jobs:
         id: shared-msk
         uses: ./.github/actions/prepare-vs-shared-tf
         with:
-          streaming_provider: kafka
+          streaming_provider: ${{ env.STREAMING_PROVIDER }}
           automq_access_key: ${{ secrets.AUTOMQ_ACCESS_KEY }}
           automq_secret_key: ${{ secrets.AUTOMQ_SECRET_KEY }}
           tf_backend_bucket: ${{ secrets.TF_BACKEND_BUCKET }}

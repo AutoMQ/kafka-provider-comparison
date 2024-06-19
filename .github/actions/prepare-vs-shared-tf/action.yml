@@ -138,6 +138,7 @@ runs:
           sudo apt-get install jq
           JSON_FILE=$(ls /tmp/*.json | head -n 1)
           extracted_benchmark_output=$(cat $JSON_FILE)
+          echo "$extracted_benchmark_output"
           echo "benchmark_result_json_$STREAMING_PROVIDER<<EOF" >> $GITHUB_OUTPUT
           echo "$extracted_benchmark_output" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT

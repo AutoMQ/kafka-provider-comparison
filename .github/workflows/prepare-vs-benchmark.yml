@@ -275,11 +275,11 @@ jobs:
       CLOUD_PROVIDER: ${{ inputs.cloud_provider || 'aws-cn' }}
       REGION: ${{ inputs.region || 'cn-northwest-1' }}
     outputs:
-      benchmark_result_json_kafka: ${{ steps.shared-msk.outputs.benchmark_result_json_msk }}
-      extracted_data_kafka: ${{ steps.shared-msk.outputs.extracted_data_msk }}
-      baseline_cost_kafka: ${{ steps.shared-msk.outputs.baseline_cost_msk }}
-      usage_cost_kafka: ${{ steps.shared-msk.outputs.usage_cost_msk }}
-      total_cost_kafka: ${{ steps.shared-msk.outputs.total_cost_msk }}
+      benchmark_result_json_msk: ${{ steps.shared-msk.outputs.benchmark_result_json_msk }}
+      extracted_data_msk: ${{ steps.shared-msk.outputs.extracted_data_msk }}
+      baseline_cost_msk: ${{ steps.shared-msk.outputs.baseline_cost_msk }}
+      usage_cost_msk: ${{ steps.shared-msk.outputs.usage_cost_msk }}
+      total_cost_msk: ${{ steps.shared-msk.outputs.total_cost_msk }}
     steps:
       - name: Checkout Benchmark Code
         uses: actions/checkout@v3
@@ -408,9 +408,9 @@ jobs:
           BASELINE_COST_KAFKA: ${{ needs.prepare_kafka_env.outputs.baseline_cost_kafka }}
           USAGE_COST_KAFKA: ${{ needs.prepare_kafka_env.outputs.usage_cost_kafka }}
           TOTAL_COST_KAFKA: ${{ needs.prepare_kafka_env.outputs.total_cost_kafka }}
-          BASELINE_COST_MSK: ${{ needs.prepare_kafka_env.outputs.baseline_cost_msk }}
-          USAGE_COST_MSK: ${{ needs.prepare_kafka_env.outputs.usage_cost_msk }}
-          TOTAL_COST_MSK: ${{ needs.prepare_kafka_env.outputs.total_cost_msk }}
+          BASELINE_COST_MSK: ${{ needs.prepare_msk_env.outputs.baseline_cost_msk }}
+          USAGE_COST_MSK: ${{ needs.prepare_msk_env.outputs.usage_cost_msk }}
+          TOTAL_COST_MSK: ${{ needs.prepare_msk_env.outputs.total_cost_msk }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY_NAME: ${{ github.repository }}
         run: |

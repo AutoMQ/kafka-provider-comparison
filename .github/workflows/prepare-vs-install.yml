@@ -273,11 +273,11 @@ jobs:
       CLOUD_PROVIDER: ${{ inputs.cloud_provider || 'aws-cn' }}
       REGION: ${{ inputs.region || 'cn-northwest-1' }}
     outputs:
-      benchmark_result_json_kafka: ${{ steps.shared-kafka.outputs.benchmark_result_json_kafka }}
-      extracted_data_kafka: ${{ steps.shared-kafka.outputs.extracted_data_kafka }}
-      baseline_cost_kafka: ${{ steps.shared-kafka.outputs.baseline_cost_kafka }}
-      usage_cost_kafka: ${{ steps.shared-kafka.outputs.usage_cost_kafka }}
-      total_cost_kafka: ${{ steps.shared-kafka.outputs.total_cost_kafka }}
+      benchmark_result_json_kafka: ${{ steps.shared-msk.outputs.benchmark_result_json_msk }}
+      extracted_data_kafka: ${{ steps.shared-msk.outputs.extracted_data_msk }}
+      baseline_cost_kafka: ${{ steps.shared-msk.outputs.baseline_cost_msk }}
+      usage_cost_kafka: ${{ steps.shared-msk.outputs.usage_cost_msk }}
+      total_cost_kafka: ${{ steps.shared-msk.outputs.total_cost_msk }}
     steps:
       - name: Checkout Benchmark Code
         uses: actions/checkout@v3
@@ -351,13 +351,13 @@ jobs:
         run: |
           echo "[INFO] Provider is AutoMQ"
           cd  driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
-          infracost breakdown --path . --usage-file  $GITHUB_WORKSPACE/infracost/${{ env.STREAMING_PROVIDER }}-medium-500m.yml --terraform-var-file  $GITHUB_WORKSPACE/driver-kafka/deploy/aws-cn/var.tfvars >> /tmp/aws-cost.txt
+          infracost breakdown --path . --usage-file  $GITHUB_WORKSPACE/infracost/${{ env.STREAMING_PROVIDER }}-medium-500m.yml --terraform-var-file  $GITHUB_WORKSPACE/driver-${{ env.STREAMING_PROVIDER }}/deploy/aws-cn/var.tfvars >> /tmp/aws-cost.txt
 
           COST_DETAIL_FILE=/tmp/aws-cost.txt
           cat $COST_DETAIL_FILE
 
       - name: Execute Shared Steps
-        id: shared-kafka
+        id: shared-msk
         uses: ./.github/actions/prepare-vs-shared-tf
         with:
           streaming_provider: kafka

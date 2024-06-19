@@ -380,6 +380,7 @@ jobs:
   generate_report:
     name: Generate Report
     runs-on: ubuntu-latest
+    #    needs: [ prepare_automq_env, prepare_kafka_env,prepare_msk_env ]
     needs: [ prepare_msk_env ]
     steps:
       - name: Checkout Benchmark Code
@@ -396,7 +397,7 @@ jobs:
 
       ##ref: https://stackoverflow.com/questions/77181212/use-composite-action-output-as-step-output
       - name: Generate Report in Issue
-        if: ${{ inputs.execute_benchmark || true }}
+        if: ${{ inputs.execute_benchmark || false }}
         env:
           BASELINE_COST_AUTOMQ: ${{ needs.prepare_automq_env.outputs.baseline_cost_automq }}
           USAGE_COST_AUTOMQ: ${{ needs.prepare_automq_env.outputs.usage_cost_automq }}
@@ -404,22 +405,42 @@ jobs:
           BASELINE_COST_KAFKA: ${{ needs.prepare_kafka_env.outputs.baseline_cost_kafka }}
           USAGE_COST_KAFKA: ${{ needs.prepare_kafka_env.outputs.usage_cost_kafka }}
           TOTAL_COST_KAFKA: ${{ needs.prepare_kafka_env.outputs.total_cost_kafka }}
+          BASELINE_COST_MSK: ${{ needs.prepare_kafka_env.outputs.baseline_cost_msk }}
+          USAGE_COST_MSK: ${{ needs.prepare_kafka_env.outputs.usage_cost_msk }}
+          TOTAL_COST_MSK: ${{ needs.prepare_kafka_env.outputs.total_cost_msk }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY_NAME: ${{ github.repository }}
         run: |
-          echo '${{ needs.prepare_automq_env.outputs.benchmark_result_json_automq }}' > $GITHUB_WORKSPACE/workflow_scripts/js/BENCHMARK_RESULT_AUTOMQ.info
-          echo '${{ needs.prepare_kafka_env.outputs.benchmark_result_json_kafka }}' > $GITHUB_WORKSPACE/workflow_scripts/js/BENCHMARK_RESULT_KAFKA.info
-          echo '${{ needs.prepare_automq_env.outputs.extracted_data_automq }}' > $GITHUB_WORKSPACE/workflow_scripts/js/EXTRACTED_DATA_AUTOMQ.info
-          echo '${{ needs.prepare_kafka_env.outputs.extracted_data_kafka }}' > $GITHUB_WORKSPACE/workflow_scripts/js/EXTRACTED_DATA_KAFKA.info
+#          echo '${{ needs.prepare_automq_env.outputs.benchmark_result_json_automq }}' > $GITHUB_WORKSPACE/workflow_scripts/js/BENCHMARK_RESULT_AUTOMQ.info
+#          echo '${{ needs.prepare_kafka_env.outputs.benchmark_result_json_kafka }}' > $GITHUB_WORKSPACE/workflow_scripts/js/BENCHMARK_RESULT_KAFKA.info
+#           echo '${{ needs.prepare_automq_env.outputs.extracted_data_automq }}' > $GITHUB_WORKSPACE/workflow_scripts/js/EXTRACTED_DATA_AUTOMQ.info
+#           echo '${{ needs.prepare_kafka_env.outputs.extracted_data_kafka }}' > $GITHUB_WORKSPACE/workflow_scripts/js/EXTRACTED_DATA_KAFKA.info
+
+
+          echo '{}' > $GITHUB_WORKSPACE/workflow_scripts/js/BENCHMARK_RESULT_AUTOMQ.info
+          echo '{}' > $GITHUB_WORKSPACE/workflow_scripts/js/BENCHMARK_RESULT_KAFKA.info
+          echo '{}' > $GITHUB_WORKSPACE/workflow_scripts/js/EXTRACTED_DATA_AUTOMQ.info
+          echo '{}' > $GITHUB_WORKSPACE/workflow_scripts/js/EXTRACTED_DATA_KAFKA.info
+          
+          
+          echo '${{ needs.prepare_kafka_env.outputs.benchmark_result_json_msk }}' > $GITHUB_WORKSPACE/workflow_scripts/js/BENCHMARK_RESULT_MSK.info
+          echo '${{ needs.prepare_kafka_env.outputs.extracted_data_msk }}' > $GITHUB_WORKSPACE/workflow_scripts/js/EXTRACTED_DATA_MSK.info
+
 
           export WORKSPACE_HOME=$GITHUB_WORKSPACE
 
           echo "BASELINE_COST_AUTOMQ: $BASELINE_COST_AUTOMQ"
           echo "USAGE_COST_AUTOMQ: $USAGE_COST_AUTOMQ"
           echo "TOTAL_COST_AUTOMQ: $TOTAL_COST_AUTOMQ"
+
           echo "BASELINE_COST_KAFKA: $BASELINE_COST_KAFKA"
           echo "USAGE_COST_KAFKA: $USAGE_COST_KAFKA"
           echo "TOTAL_COST_KAFKA: $TOTAL_COST_KAFKA"
+
+          echo "BASELINE_COST_MSK: $BASELINE_COST_MSK"
+          echo "USAGE_COST_MSK: $USAGE_COST_MSK"
+          echo "TOTAL_COST_MSK: $TOTAL_COST_MSK"
+
           echo "GITHUB_TOKEN: [REDACTED]"
           echo "GITHUB_REPOSITORY_NAME: $GITHUB_REPOSITORY_NAME"
           cd $GITHUB_WORKSPACE/workflow_scripts/js

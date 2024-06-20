@@ -27,7 +27,7 @@ BENCHMARK_DIR="/opt/benchmark"
 sudo rm -f /tmp/*.json
 $SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/*.json"
 $SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/benchmark-worker.log"
-$SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/workflow_scripts/reassign_cost.log"
+$SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/workflow_scripts/bin/reassign_cost.log"
 
 
 # Execute the benchmark test
@@ -45,7 +45,7 @@ CHECK_INTERVAL=5  # Check every 5 seconds
 
 while [ $ELAPSED -lt $TIMEOUT ]; do
   JSON_EXISTS=$($SSH_BASE_CMD $SSH_HOST "ls $BENCHMARK_DIR/*.json" 2> /dev/null)
-  LOG_EXISTS=$($SSH_BASE_CMD $SSH_HOST "ls $BENCHMARK_DIR/workflow_scripts/reassign_cost.log" 2> /dev/null)
+  LOG_EXISTS=$($SSH_BASE_CMD $SSH_HOST "ls $BENCHMARK_DIR/workflow_scripts/bin/reassign_cost.log" 2> /dev/null)
 
   if [ -n "$JSON_EXISTS" ] && [ -n "$LOG_EXISTS" ]; then
     echo "Benchmark results and reassign_cost.log are ready."
@@ -61,7 +61,7 @@ if [ $ELAPSED -lt $TIMEOUT ]; then
   # Copy the result files to local directory when they exist
   $SCP_BASE_CMD $SSH_HOST:$BENCHMARK_DIR/*.json /tmp
   $SCP_BASE_CMD $SSH_HOST:$BENCHMARK_DIR/benchmark-worker.log /tmp
-  $SCP_BASE_CMD $SSH_HOST:$BENCHMARK_DIR/workflow_scripts/reassign_cost.log /tmp
+  $SCP_BASE_CMD $SSH_HOST:$BENCHMARK_DIR/workflow_scripts/bin/reassign_cost.log /tmp
 else
   # Exit with an error message if the timeout is reached without results
   echo "Timeout waiting for benchmark results."

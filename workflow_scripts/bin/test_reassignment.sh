@@ -17,14 +17,16 @@ else
     exit 1
 fi
 
-sed -i "s/\${REASSIGN_TOPIC}/$topic_name/g" $json_file
+cp $json_file $json_file.updated
+
+sed -i "s/\${REASSIGN_TOPIC}/$topic_name/g" $json_file.updated
 
 echo "Replacement complete."
 
 # Command to execute the partition reassignment
-execute_command="kafka_2.13-3.7.0/bin/kafka-reassign-partitions.sh --bootstrap-server $bootstrap_server --reassignment-json-file $json_file --execute"
+execute_command="kafka_2.13-3.7.0/bin/kafka-reassign-partitions.sh --bootstrap-server $bootstrap_server --reassignment-json-file $json_file.updated --execute"
 # Command to verify the partition reassignment
-verify_command="kafka_2.13-3.7.0/bin/kafka-reassign-partitions.sh --bootstrap-server $bootstrap_server --reassignment-json-file $json_file --verify"
+verify_command="kafka_2.13-3.7.0/bin/kafka-reassign-partitions.sh --bootstrap-server $bootstrap_server --reassignment-json-file $json_file.updated --verify"
 
 # Record the start time
 start_time=$(date +%s)

@@ -31,6 +31,8 @@ producerConfig: |
   linger.ms=1
   batch.size=65536
 
+## ensure rack aware to avoid cross az cost
 consumerConfig: |
   auto.offset.reset=earliest
   enable.auto.commit=true
+  client.rack=cn-northwest-1a

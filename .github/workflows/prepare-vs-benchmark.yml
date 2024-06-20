@@ -372,7 +372,7 @@ jobs:
           ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
           infra_cost_api_key: ${{ secrets.INFRA_COST_API_KEY }}
           uninstall: ${{ inputs.uninstall || false }}
-          execute_benchmark: ${{ inputs.execute_benchmark || false }}
+          execute_benchmark: ${{ inputs.execute_benchmark || true }}
 
 
   #          echo '${{ needs.prepare_automq_env.outputs.benchmark_result_json_automq }}' > $GITHUB_WORKSPACE/workflow_scripts/js/BENCHMARK_RESULT_AUTOMQ.info

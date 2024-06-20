@@ -164,16 +164,22 @@ const topicConfigPairsKafka = configToKeyValuePairs(topic_config_kafka);
 const baselineCostAutoMQ = parseFloat(process.env.BASELINE_COST_AUTOMQ).toFixed(2);
 const usageCostAutoMQ = parseFloat(process.env.USAGE_COST_AUTOMQ).toFixed(2);
 const totalCostAutoMQ = parseFloat(process.env.TOTAL_COST_AUTOMQ).toFixed(2);
+const reassignCostSecondsAutoMQ = process.env.REASSIGN_COST_AUTOMQ;
+
 
 // --- Kafka
 const baselineCostKafka = parseFloat(process.env.BASELINE_COST_KAFKA).toFixed(2);
 const usageCostKafka = parseFloat(process.env.USAGE_COST_KAFKA).toFixed(2);
 const totalCostKafka = parseFloat(process.env.TOTAL_COST_KAFKA).toFixed(2);
+const reassignCostSecondsKafka = process.env.REASSIGN_COST_KAFKA;
+
 
 // ---- MSK
 const baselineCostMSK = parseFloat(process.env.BASELINE_COST_MSK).toFixed(2);
 const usageCostMSK = parseFloat(process.env.USAGE_COST_MSK).toFixed(2);
 const totalCostMSK = parseFloat(process.env.TOTAL_COST_MSK).toFixed(2);
+const reassignCostSecondsMSK = process.env.REASSIGN_COST_MSK;
+
 
 // Get current date and time
 const now = new Date();
@@ -203,6 +209,12 @@ const markdownReport = `
 
   > Cost Estimate Rule: Check explanation under cost-explanation directory of this repository
 
+  
+  #### Elasticity
+  Take how many seconds to move 30 partitions from one broker to another broker after write 750GB data
+  [AutoMQ]: ${reassignCostSecondsAutoMQ} seconds
+  [Kafka]: ${reassignCostSecondsKafka} seconds
+  [Amazon MSK]: ${reassignCostSecondsMSK} seconds
 
   | Kafka Provider | Pub Latency (ms) avg | Pub Latency (ms) P99 | E2E LatencyAvg(ms) | E2E P95 Latency(ms) | E2E P99 Latency(ms) | Baseline Cost($) | Usage Cost($) | Total Cost($) |
   | ---------------- | ------------------ |  ------------------ |  ------------------ | ------------------- | ------------------- | ------------- | ---------- | ---------- |

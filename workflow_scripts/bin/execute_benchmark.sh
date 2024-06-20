@@ -35,7 +35,7 @@ $SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/workflow_scripts/reassign_cos
 $SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR && sudo ./bin/benchmark -d ./driver-${STREAMING_PROVIDER}/driver.yaml ./workloads/vs/fast-tail-read-500m.yaml"
 
 ## test reassignment, must in current dir to execute test_reassignment
-$SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR/workflow_scripts && sudo ./test_reassignment.sh"
+$SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR/workflow_scripts/bin && sudo ./test_reassignment.sh"
 
 
 # Check if new result files have been generated

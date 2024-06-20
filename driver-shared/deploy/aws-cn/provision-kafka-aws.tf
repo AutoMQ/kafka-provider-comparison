@@ -42,7 +42,7 @@ variable "region" {
 
 variable "az" {
   type = list(string)
-  default = ["cn-northwest-1a", "cn-northwest-1b"]
+  default = ["cn-northwest-1a"]
 }
 
 variable "ami" {}

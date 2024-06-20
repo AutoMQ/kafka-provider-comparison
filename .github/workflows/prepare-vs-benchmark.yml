@@ -351,8 +351,7 @@ jobs:
       - name: AWS Cost Estimate
         shell: bash
         run: |
-          echo "[INFO] Provider is AutoMQ"
-          cd  driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
+          cd  driver-${{ env.STREAMING_PROVIDER }}/deploy/${{ env.CLOUD_PROVIDER }}
           infracost breakdown --path . --usage-file  $GITHUB_WORKSPACE/infracost/${{ env.STREAMING_PROVIDER }}-medium-500m.yml --terraform-var-file  $GITHUB_WORKSPACE/driver-${{ env.STREAMING_PROVIDER }}/deploy/aws-cn/var.tfvars >> /tmp/aws-cost.txt
 
           COST_DETAIL_FILE=/tmp/aws-cost.txt

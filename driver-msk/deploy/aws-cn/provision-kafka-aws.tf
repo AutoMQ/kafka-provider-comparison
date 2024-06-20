@@ -289,11 +289,28 @@ resource "aws_security_group" "sg" {
   }
 }
 
+resource "aws_msk_configuration" "rackconfig" {
+  kafka_versions = ["3.7.x.kraft"]
+  name           = "rackconfig"
+
+  server_properties = <<PROPERTIES
+replica.selector.class = org.apache.kafka.common.replica.RackAwareReplicaSelector
+auto.create.topics.enable = true
+delete.topic.enable = true
+log.retention.hours = 8
+PROPERTIES
+}
+
 #   ref:https://docs.aws.amazon.com/msk/latest/developerguide/kraft-intro.html
 resource "aws_msk_cluster" "mskcluster" {
   cluster_name           = "mskcluster"
   kafka_version          = "3.7.x.kraft"
   number_of_broker_nodes = 3
+
+  configuration_info{
+    arn = aws_msk_configuration.rackconfig.arn
+    revision = aws_msk_configuration.rackconfig.latest_revision
+  }
 
   broker_node_group_info {
     instance_type  = "kafka.m5.xlarge"

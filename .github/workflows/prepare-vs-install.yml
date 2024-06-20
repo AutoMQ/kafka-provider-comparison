@@ -272,12 +272,6 @@ jobs:
       STREAMING_PROVIDER: msk
       CLOUD_PROVIDER: ${{ inputs.cloud_provider || 'aws-cn' }}
       REGION: ${{ inputs.region || 'cn-northwest-1' }}
-    outputs:
-      benchmark_result_json_kafka: ${{ steps.shared-msk.outputs.benchmark_result_json_msk }}
-      extracted_data_kafka: ${{ steps.shared-msk.outputs.extracted_data_msk }}
-      baseline_cost_kafka: ${{ steps.shared-msk.outputs.baseline_cost_msk }}
-      usage_cost_kafka: ${{ steps.shared-msk.outputs.usage_cost_msk }}
-      total_cost_kafka: ${{ steps.shared-msk.outputs.total_cost_msk }}
     steps:
       - name: Checkout Benchmark Code
         uses: actions/checkout@v3

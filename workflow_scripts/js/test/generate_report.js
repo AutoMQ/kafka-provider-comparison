@@ -159,17 +159,20 @@ const topicConfigPairsKafka = configToKeyValuePairs(topic_config_kafka);
 
 // Costs are directly used from the steps
 // --- AutoMQ
-const baselineCostAutoMQ = process.env.BASELINE_COST_AUTOMQ;
-const usageCostAutoMQ = process.env.USAGE_COST_AUTOMQ;
-const totalCostAutoMQ = process.env.TOTAL_COST_AUTOMQ;
+const baselineCostAutoMQ = parseFloat(process.env.BASELINE_COST_AUTOMQ).toFixed(2);
+const usageCostAutoMQ = parseFloat(process.env.USAGE_COST_AUTOMQ).toFixed(2);
+const totalCostAutoMQ = parseFloat(process.env.TOTAL_COST_AUTOMQ).toFixed(2);
+
 // --- Kafka
-const baselineCostKafka = process.env.BASELINE_COST_KAFKA;
-const usageCostKafka = process.env.USAGE_COST_KAFKA;
-const totalCostKafka = process.env.TOTAL_COST_KAFKA
+const baselineCostKafka = parseFloat(process.env.BASELINE_COST_KAFKA).toFixed(2);
+const usageCostKafka = parseFloat(process.env.USAGE_COST_KAFKA).toFixed(2);
+const totalCostKafka = parseFloat(process.env.TOTAL_COST_KAFKA).toFixed(2);
+
 // ---- MSK
-const baselineCostMSK = process.env.BASELINE_COST_MSK;
-const usageCostMSK = process.env.USAGE_COST_MSK;
-const totalCostMSK = process.env.TOTAL_COST_MSK
+const baselineCostMSK = parseFloat("91.35000000000002").toFixed(2);
+const usageCostMSK = parseFloat(process.env.USAGE_COST_MSK).toFixed(2);
+const totalCostMSK = parseFloat(process.env.TOTAL_COST_MSK).toFixed(2);
+
 
 // Get current date and time
 const now = new Date();

@@ -34,7 +34,7 @@ jobs:
       STREAMING_PROVIDER: automq
       CLOUD_PROVIDER: ${{ inputs.cloud_provider || 'aws-cn' }}
       REGION: ${{ inputs.region || 'cn-northwest-1' }}
-    if: ${{ github.event.workflow_run.conclusion == 'success'  }}
+#    if: ${{ github.event.workflow_run.conclusion == 'success'  }}
     outputs:
       benchmark_result_json_automq: ${{ steps.shared-automq.outputs.benchmark_result_json_automq }}
       extracted_data_automq: ${{ steps.shared-automq.outputs.extracted_data_automq }}

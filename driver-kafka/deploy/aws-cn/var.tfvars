@@ -9,9 +9,9 @@ instance_type = {
 }
 
 instance_cnt = {
-  "server"              = 3
-  "broker"              = 12
-  "client"              = 5
+  "server"              = 1
+  "broker"              = 2
+  "client"              = 1
 }
 
 ebs_volume_type = "gp3"

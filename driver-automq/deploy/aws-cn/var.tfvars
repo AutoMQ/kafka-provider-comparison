@@ -10,9 +10,9 @@ instance_type = {
 
 instance_cnt = {
   ## r6i.large in/out 100MB/s
-  "server"              = 3
-  "broker"              = 9
-  "client"              = 5
+  "server"              = 1
+  "broker"              = 2
+  "client"              = 1
 }
 
 ebs_volume_type = "gp3"

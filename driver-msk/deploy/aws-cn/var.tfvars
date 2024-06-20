@@ -8,7 +8,7 @@ instance_type = {
 }
 
 instance_cnt = {
-  "client"              = 5
+  "client"              = 1
 }
 
 

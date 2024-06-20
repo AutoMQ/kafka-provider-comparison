@@ -305,7 +305,7 @@ PROPERTIES
 resource "aws_msk_cluster" "mskcluster" {
   cluster_name           = "mskcluster"
   kafka_version          = "3.7.x.kraft"
-  number_of_broker_nodes = 3
+  number_of_broker_nodes = 2
 
   configuration_info{
     arn = aws_msk_configuration.rackconfig.arn

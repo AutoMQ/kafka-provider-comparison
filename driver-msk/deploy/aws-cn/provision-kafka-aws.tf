@@ -293,7 +293,7 @@ resource "aws_security_group" "sg" {
 resource "aws_msk_cluster" "mskcluster" {
   cluster_name           = "mskcluster"
   kafka_version          = "3.7.x.kraft"
-  number_of_broker_nodes = 3
+  number_of_broker_nodes = 15
 
   broker_node_group_info {
     instance_type  = "kafka.m5.large"

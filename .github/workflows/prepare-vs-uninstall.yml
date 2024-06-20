@@ -25,246 +25,246 @@ on:
         type: boolean
 
 jobs:
-#
-#  prepare_automq_env:
-#    environment: ${{ inputs.cloud_provider || 'aws-cn' }}
-#    name: Prepare AutoMQ Environment
-#    runs-on: ubuntu-latest
-#    env:
-#      STREAMING_PROVIDER: automq
-#      CLOUD_PROVIDER: ${{ inputs.cloud_provider || 'aws-cn' }}
-#      REGION: ${{ inputs.region || 'cn-northwest-1' }}
-#    if: ${{ github.event.workflow_run.conclusion == 'success'  }}
-#    outputs:
-#      benchmark_result_json_automq: ${{ steps.shared-automq.outputs.benchmark_result_json_automq }}
-#      extracted_data_automq: ${{ steps.shared-automq.outputs.extracted_data_automq }}
-#      baseline_cost_automq: ${{ steps.shared-automq.outputs.baseline_cost_automq }}
-#      usage_cost_automq: ${{ steps.shared-automq.outputs.usage_cost_automq }}
-#      total_cost_automq: ${{ steps.shared-automq.outputs.total_cost_automq }}
-#    steps:
-#      - name: Hello World
-#        run: echo "Hello World"
-#      - name: Checkout Benchmark Code
-#        uses: actions/checkout@v3
-#      - name: Cache local Maven repository
-#        uses: actions/cache@v2
-#        with:
-#          path: ~/.m2/repository
-#          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-#          restore-keys: |
-#            ${{ runner.os }}-maven-
-#      #      Composition action can't access secrets input, so we inline related step here
-#      - name: Fetch Latest Data
-#        shell: bash
-#        run: |
-#          git pull origin main
-#
-#      - name: Build Benchmark Code
-#        shell: bash
-#        run: |
-#          mvn clean package -Dlicense.skip=true -Dcheckstyle.skip -DskipTests -Dspotless.check.skip
-#
-#      - name: Apply Variables and Secrets for Shared Files
-#        shell: bash
-#        run: |
-#          echo "current path is: $(pwd)"
-#          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-nats/deploy/provision-nats-aws.tf"
-#          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-pravega/deploy/provision-pravega-aws.tf"
-#          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-shared/deploy/${{ env.CLOUD_PROVIDER }}/provision-kafka-aws.tf"
-#          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g"  "driver-shared/deploy/${{ env.CLOUD_PROVIDER }}/ansible.cfg"
-#
-#      - name: Apply Variables and Secrets for Streaming Provider
-#        working-directory: driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
-#        ## Set AK/SK and terraform s3 backend info
-#        shell: bash
-#        run: |
-#          echo "current path is: $(pwd)"
-#          sed -i "s/\${TF_BACKEND_BUCKET}/$TF_BACKEND_BUCKET/g" "provision-kafka-aws.tf"
-#          sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY-${{ env.CLOUD_PROVIDER }}-${{ env.STREAMING_PROVIDER }}/g" "provision-kafka-aws.tf"
-#          sed -i "s/\${TF_BACKEND_REGION}/$REGION/g" "provision-kafka-aws.tf"
-#          sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "provision-kafka-aws.tf"
-#          sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "provision-kafka-aws.tf"
-#        env:
-#          ## sed match only support ENV rather than expression like ${{ secrets.TF_BACKEND_BUCKET }}
-#          TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
-#          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}
-#
-#      - name: Configure AWS credentials
-#        uses: aws-actions/configure-aws-credentials@v4
-#        with:
-#          aws-access-key-id: ${{ secrets.AUTOMQ_ACCESS_KEY }}
-#          aws-secret-access-key: ${{ secrets.AUTOMQ_SECRET_KEY }}
-#          aws-region: ${{ inputs.region || 'cn-northwest-1' }}
-#
-#      - name: Setup SSH key
-#        shell: bash
-#        run: |
-#          mkdir -p ~/.ssh
-#          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/kpc_sshkey
-#          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/kpc_sshkey.pub
-#          chmod 600 ~/.ssh/kpc_sshkey
-#          chmod 644 ~/.ssh/kpc_sshkey.pub
-#
-#      - name: Install python
-#        uses: actions/setup-python@v4
-#        with:
-#          python-version: '3.10'
-#
-#      - name: Setup Infra Cost
-#        shell: bash
-#        run: |
-#          # Downloads the CLI based on your OS/arch and puts it in /usr/local/bin
-#          curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
-#          infracost --version
-#          infracost configure set api_key ${{ secrets.INFRA_COST_API_KEY }}
-#
-#      - name: AWS Cost Estimate
-#        shell: bash
-#        run: |
-#          echo "[INFO] Provider is AutoMQ"
-#          cd  driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
-#          infracost breakdown --path . --usage-file  $GITHUB_WORKSPACE/infracost/${{ env.STREAMING_PROVIDER }}-medium-500m.yml  --terraform-var-file  $GITHUB_WORKSPACE/driver-automq/deploy/aws-cn/var.tfvars >> /tmp/aws-cost.txt
-#
-#          COST_DETAIL_FILE=/tmp/aws-cost.txt
-#          cat $COST_DETAIL_FILE
-#
-#      - name: Execute Shared Steps
-#        id: shared-automq
-#        uses: ./.github/actions/prepare-vs-shared
-#        with:
-#          streaming_provider: automq
-#          automq_access_key: ${{ secrets.AUTOMQ_ACCESS_KEY }}
-#          automq_secret_key: ${{ secrets.AUTOMQ_SECRET_KEY }}
-#          tf_backend_bucket: ${{ secrets.TF_BACKEND_BUCKET }}
-#          tf_backend_key: ${{ secrets.TF_BACKEND_KEY }}-${{ inputs.cloud_provider || 'aws-cn' }}
-#          region: ${{ inputs.region || 'cn-northwest-1' }}
-#          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
-#          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-#          ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
-#          infra_cost_api_key: ${{ secrets.INFRA_COST_API_KEY }}
-#          uninstall: ${{ inputs.uninstall || true }}
-#          execute_benchmark: ${{ inputs.execute_benchmark || false }}
-#
-#
-#  prepare_kafka_env:
-#    environment: ${{ inputs.cloud_provider || 'aws-cn' }}
-#    name: Prepare Kafka Environment
-#    runs-on: ubuntu-latest
-#    env:
-#      STREAMING_PROVIDER: kafka
-#      CLOUD_PROVIDER: ${{ inputs.cloud_provider || 'aws-cn' }}
-#      REGION: ${{ inputs.region || 'cn-northwest-1' }}
-#    outputs:
-#      benchmark_result_json_kafka: ${{ steps.shared-kafka.outputs.benchmark_result_json_kafka }}
-#      extracted_data_kafka: ${{ steps.shared-kafka.outputs.extracted_data_kafka }}
-#      baseline_cost_kafka: ${{ steps.shared-kafka.outputs.baseline_cost_kafka }}
-#      usage_cost_kafka: ${{ steps.shared-kafka.outputs.usage_cost_kafka }}
-#      total_cost_kafka: ${{ steps.shared-kafka.outputs.total_cost_kafka }}
-#    if: ${{  github.event.workflow_run.conclusion == 'success'  }}
-#    steps:
-#      - name: Hello World
-#        run: echo "Hello World"
-#      - name: Checkout Benchmark Code
-#        uses: actions/checkout@v3
-#      - name: Cache local Maven repository
-#        uses: actions/cache@v2
-#        with:
-#          path: ~/.m2/repository
-#          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-#          restore-keys: |
-#            ${{ runner.os }}-maven-
-#      #      Composition action can't access secrets input, so we inline related step here
-#      - name: Fetch Latest Data
-#        shell: bash
-#        run: |
-#          git pull origin main
-#
-#      - name: Build Benchmark Code
-#        shell: bash
-#        run: |
-#          mvn clean package -Dlicense.skip=true -Dcheckstyle.skip -DskipTests -Dspotless.check.skip
-#
-#      - name: Apply Variables and Secrets for Shared Files
-#        shell: bash
-#        run: |
-#          echo "current path is: $(pwd)"
-#          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-nats/deploy/provision-nats-aws.tf"
-#          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-pravega/deploy/provision-pravega-aws.tf"
-#          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-shared/deploy/${{ env.CLOUD_PROVIDER }}/provision-kafka-aws.tf"
-#          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g"  "driver-shared/deploy/${{ env.CLOUD_PROVIDER }}/ansible.cfg"
-#
-#      - name: Apply Variables and Secrets for Streaming Provider
-#        working-directory: driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
-#        ## Set AK/SK and terraform s3 backend info
-#        shell: bash
-#        run: |
-#          echo "current path is: $(pwd)"
-#          sed -i "s/\${TF_BACKEND_BUCKET}/$TF_BACKEND_BUCKET/g" "provision-kafka-aws.tf"
-#          sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY-${{ env.CLOUD_PROVIDER }}-${{ env.STREAMING_PROVIDER }}/g" "provision-kafka-aws.tf"
-#          sed -i "s/\${TF_BACKEND_REGION}/$REGION/g" "provision-kafka-aws.tf"
-#          sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "provision-kafka-aws.tf"
-#          sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "provision-kafka-aws.tf"
-#        env:
-#          ## sed match only support ENV rather than expression like ${{ secrets.TF_BACKEND_BUCKET }}
-#          TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
-#          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}
-#          REGION: ${{ inputs.region || 'cn-northwest-1' }}
-#
-#      - name: Configure AWS credentials
-#        uses: aws-actions/configure-aws-credentials@v4
-#        with:
-#          aws-access-key-id: ${{ secrets.AUTOMQ_ACCESS_KEY }}
-#          aws-secret-access-key: ${{ secrets.AUTOMQ_SECRET_KEY }}
-#          aws-region: ${{ inputs.region || 'cn-northwest-1' }}
-#
-#      - name: Setup SSH key
-#        shell: bash
-#        run: |
-#          mkdir -p ~/.ssh
-#          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/kpc_sshkey
-#          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/kpc_sshkey.pub
-#          chmod 600 ~/.ssh/kpc_sshkey
-#          chmod 644 ~/.ssh/kpc_sshkey.pub
-#
-#      - name: Install python
-#        uses: actions/setup-python@v4
-#        with:
-#          python-version: '3.10'
-#
-#      - name: Setup Infra Cost
-#        shell: bash
-#        run: |
-#          # Downloads the CLI based on your OS/arch and puts it in /usr/local/bin
-#          curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
-#          infracost --version
-#          infracost configure set api_key ${{ secrets.INFRA_COST_API_KEY }}
-#
-#      - name: AWS Cost Estimate
-#        shell: bash
-#        run: |
-#          echo "[INFO] Provider is AutoMQ"
-#          cd  driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
-#          infracost breakdown --path . --usage-file  $GITHUB_WORKSPACE/infracost/${{ env.STREAMING_PROVIDER }}-medium-500m.yml --terraform-var-file  $GITHUB_WORKSPACE/driver-kafka/deploy/aws-cn/var.tfvars >> /tmp/aws-cost.txt
-#
-#          COST_DETAIL_FILE=/tmp/aws-cost.txt
-#          cat $COST_DETAIL_FILE
-#
-#      - name: Execute Shared Steps
-#        id: shared-kafka
-#        uses: ./.github/actions/prepare-vs-shared
-#        with:
-#          streaming_provider: kafka
-#          automq_access_key: ${{ secrets.AUTOMQ_ACCESS_KEY }}
-#          automq_secret_key: ${{ secrets.AUTOMQ_SECRET_KEY }}
-#          tf_backend_bucket: ${{ secrets.TF_BACKEND_BUCKET }}
-#          tf_backend_key: ${{ secrets.TF_BACKEND_KEY }}-${{ inputs.cloud_provider || 'aws-cn' }}
-#          region: ${{ inputs.region || 'cn-northwest-1' }}
-#          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
-#          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-#          ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
-#          infra_cost_api_key: ${{ secrets.INFRA_COST_API_KEY }}
-#          uninstall: ${{ inputs.uninstall || true }}
-#          execute_benchmark: ${{ inputs.execute_benchmark || false }}
+
+  prepare_automq_env:
+    environment: ${{ inputs.cloud_provider || 'aws-cn' }}
+    name: Prepare AutoMQ Environment
+    runs-on: ubuntu-latest
+    env:
+      STREAMING_PROVIDER: automq
+      CLOUD_PROVIDER: ${{ inputs.cloud_provider || 'aws-cn' }}
+      REGION: ${{ inputs.region || 'cn-northwest-1' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success'  }}
+    outputs:
+      benchmark_result_json_automq: ${{ steps.shared-automq.outputs.benchmark_result_json_automq }}
+      extracted_data_automq: ${{ steps.shared-automq.outputs.extracted_data_automq }}
+      baseline_cost_automq: ${{ steps.shared-automq.outputs.baseline_cost_automq }}
+      usage_cost_automq: ${{ steps.shared-automq.outputs.usage_cost_automq }}
+      total_cost_automq: ${{ steps.shared-automq.outputs.total_cost_automq }}
+    steps:
+      - name: Hello World
+        run: echo "Hello World"
+      - name: Checkout Benchmark Code
+        uses: actions/checkout@v3
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      #      Composition action can't access secrets input, so we inline related step here
+      - name: Fetch Latest Data
+        shell: bash
+        run: |
+          git pull origin main
+
+      - name: Build Benchmark Code
+        shell: bash
+        run: |
+          mvn clean package -Dlicense.skip=true -Dcheckstyle.skip -DskipTests -Dspotless.check.skip
+
+      - name: Apply Variables and Secrets for Shared Files
+        shell: bash
+        run: |
+          echo "current path is: $(pwd)"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-nats/deploy/provision-nats-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-pravega/deploy/provision-pravega-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-shared/deploy/${{ env.CLOUD_PROVIDER }}/provision-kafka-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g"  "driver-shared/deploy/${{ env.CLOUD_PROVIDER }}/ansible.cfg"
+
+      - name: Apply Variables and Secrets for Streaming Provider
+        working-directory: driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
+        ## Set AK/SK and terraform s3 backend info
+        shell: bash
+        run: |
+          echo "current path is: $(pwd)"
+          sed -i "s/\${TF_BACKEND_BUCKET}/$TF_BACKEND_BUCKET/g" "provision-kafka-aws.tf"
+          sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY-${{ env.CLOUD_PROVIDER }}-${{ env.STREAMING_PROVIDER }}/g" "provision-kafka-aws.tf"
+          sed -i "s/\${TF_BACKEND_REGION}/$REGION/g" "provision-kafka-aws.tf"
+          sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "provision-kafka-aws.tf"
+          sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "provision-kafka-aws.tf"
+        env:
+          ## sed match only support ENV rather than expression like ${{ secrets.TF_BACKEND_BUCKET }}
+          TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
+          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AUTOMQ_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AUTOMQ_SECRET_KEY }}
+          aws-region: ${{ inputs.region || 'cn-northwest-1' }}
+
+      - name: Setup SSH key
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/kpc_sshkey
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/kpc_sshkey.pub
+          chmod 600 ~/.ssh/kpc_sshkey
+          chmod 644 ~/.ssh/kpc_sshkey.pub
+
+      - name: Install python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Setup Infra Cost
+        shell: bash
+        run: |
+          # Downloads the CLI based on your OS/arch and puts it in /usr/local/bin
+          curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
+          infracost --version
+          infracost configure set api_key ${{ secrets.INFRA_COST_API_KEY }}
+
+      - name: AWS Cost Estimate
+        shell: bash
+        run: |
+          echo "[INFO] Provider is AutoMQ"
+          cd  driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
+          infracost breakdown --path . --usage-file  $GITHUB_WORKSPACE/infracost/${{ env.STREAMING_PROVIDER }}-medium-500m.yml  --terraform-var-file  $GITHUB_WORKSPACE/driver-automq/deploy/aws-cn/var.tfvars >> /tmp/aws-cost.txt
+
+          COST_DETAIL_FILE=/tmp/aws-cost.txt
+          cat $COST_DETAIL_FILE
+
+      - name: Execute Shared Steps
+        id: shared-automq
+        uses: ./.github/actions/prepare-vs-shared
+        with:
+          streaming_provider: automq
+          automq_access_key: ${{ secrets.AUTOMQ_ACCESS_KEY }}
+          automq_secret_key: ${{ secrets.AUTOMQ_SECRET_KEY }}
+          tf_backend_bucket: ${{ secrets.TF_BACKEND_BUCKET }}
+          tf_backend_key: ${{ secrets.TF_BACKEND_KEY }}-${{ inputs.cloud_provider || 'aws-cn' }}
+          region: ${{ inputs.region || 'cn-northwest-1' }}
+          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+          infra_cost_api_key: ${{ secrets.INFRA_COST_API_KEY }}
+          uninstall: ${{ inputs.uninstall || true }}
+          execute_benchmark: ${{ inputs.execute_benchmark || false }}
+
+
+  prepare_kafka_env:
+    environment: ${{ inputs.cloud_provider || 'aws-cn' }}
+    name: Prepare Kafka Environment
+    runs-on: ubuntu-latest
+    env:
+      STREAMING_PROVIDER: kafka
+      CLOUD_PROVIDER: ${{ inputs.cloud_provider || 'aws-cn' }}
+      REGION: ${{ inputs.region || 'cn-northwest-1' }}
+    outputs:
+      benchmark_result_json_kafka: ${{ steps.shared-kafka.outputs.benchmark_result_json_kafka }}
+      extracted_data_kafka: ${{ steps.shared-kafka.outputs.extracted_data_kafka }}
+      baseline_cost_kafka: ${{ steps.shared-kafka.outputs.baseline_cost_kafka }}
+      usage_cost_kafka: ${{ steps.shared-kafka.outputs.usage_cost_kafka }}
+      total_cost_kafka: ${{ steps.shared-kafka.outputs.total_cost_kafka }}
+    if: ${{  github.event.workflow_run.conclusion == 'success'  }}
+    steps:
+      - name: Hello World
+        run: echo "Hello World"
+      - name: Checkout Benchmark Code
+        uses: actions/checkout@v3
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      #      Composition action can't access secrets input, so we inline related step here
+      - name: Fetch Latest Data
+        shell: bash
+        run: |
+          git pull origin main
+
+      - name: Build Benchmark Code
+        shell: bash
+        run: |
+          mvn clean package -Dlicense.skip=true -Dcheckstyle.skip -DskipTests -Dspotless.check.skip
+
+      - name: Apply Variables and Secrets for Shared Files
+        shell: bash
+        run: |
+          echo "current path is: $(pwd)"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-nats/deploy/provision-nats-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-pravega/deploy/provision-pravega-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g" "driver-shared/deploy/${{ env.CLOUD_PROVIDER }}/provision-kafka-aws.tf"
+          sed -i "s/\${AUTOMQ_ENVID}/${{ env.STREAMING_PROVIDER }}/g"  "driver-shared/deploy/${{ env.CLOUD_PROVIDER }}/ansible.cfg"
+
+      - name: Apply Variables and Secrets for Streaming Provider
+        working-directory: driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
+        ## Set AK/SK and terraform s3 backend info
+        shell: bash
+        run: |
+          echo "current path is: $(pwd)"
+          sed -i "s/\${TF_BACKEND_BUCKET}/$TF_BACKEND_BUCKET/g" "provision-kafka-aws.tf"
+          sed -i "s/\${TF_BACKEND_KEY}/$TF_BACKEND_KEY-${{ env.CLOUD_PROVIDER }}-${{ env.STREAMING_PROVIDER }}/g" "provision-kafka-aws.tf"
+          sed -i "s/\${TF_BACKEND_REGION}/$REGION/g" "provision-kafka-aws.tf"
+          sed -i "s/\${AUTOMQ_ACCESS_KEY}/${{ secrets.AUTOMQ_ACCESS_KEY }}/g" "provision-kafka-aws.tf"
+          sed -i "s/\${AUTOMQ_SECRET_KEY}/${{ secrets.AUTOMQ_SECRET_KEY }}/g" "provision-kafka-aws.tf"
+        env:
+          ## sed match only support ENV rather than expression like ${{ secrets.TF_BACKEND_BUCKET }}
+          TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
+          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}
+          REGION: ${{ inputs.region || 'cn-northwest-1' }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AUTOMQ_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AUTOMQ_SECRET_KEY }}
+          aws-region: ${{ inputs.region || 'cn-northwest-1' }}
+
+      - name: Setup SSH key
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/kpc_sshkey
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/kpc_sshkey.pub
+          chmod 600 ~/.ssh/kpc_sshkey
+          chmod 644 ~/.ssh/kpc_sshkey.pub
+
+      - name: Install python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Setup Infra Cost
+        shell: bash
+        run: |
+          # Downloads the CLI based on your OS/arch and puts it in /usr/local/bin
+          curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
+          infracost --version
+          infracost configure set api_key ${{ secrets.INFRA_COST_API_KEY }}
+
+      - name: AWS Cost Estimate
+        shell: bash
+        run: |
+          echo "[INFO] Provider is AutoMQ"
+          cd  driver-shared/deploy/${{ env.CLOUD_PROVIDER }}
+          infracost breakdown --path . --usage-file  $GITHUB_WORKSPACE/infracost/${{ env.STREAMING_PROVIDER }}-medium-500m.yml --terraform-var-file  $GITHUB_WORKSPACE/driver-kafka/deploy/aws-cn/var.tfvars >> /tmp/aws-cost.txt
+
+          COST_DETAIL_FILE=/tmp/aws-cost.txt
+          cat $COST_DETAIL_FILE
+
+      - name: Execute Shared Steps
+        id: shared-kafka
+        uses: ./.github/actions/prepare-vs-shared
+        with:
+          streaming_provider: kafka
+          automq_access_key: ${{ secrets.AUTOMQ_ACCESS_KEY }}
+          automq_secret_key: ${{ secrets.AUTOMQ_SECRET_KEY }}
+          tf_backend_bucket: ${{ secrets.TF_BACKEND_BUCKET }}
+          tf_backend_key: ${{ secrets.TF_BACKEND_KEY }}-${{ inputs.cloud_provider || 'aws-cn' }}
+          region: ${{ inputs.region || 'cn-northwest-1' }}
+          cloud_provider: ${{ inputs.cloud_provider || 'aws-cn' }}
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+          infra_cost_api_key: ${{ secrets.INFRA_COST_API_KEY }}
+          uninstall: ${{ inputs.uninstall || true }}
+          execute_benchmark: ${{ inputs.execute_benchmark || false }}
 
   prepare_msk_env:
     environment: ${{ inputs.cloud_provider || 'aws-cn' }}
@@ -375,52 +375,3 @@ jobs:
           uninstall: ${{ inputs.uninstall || false }}
           execute_benchmark: ${{ inputs.execute_benchmark || false }}
 
-
-
-  generate_report:
-    name: Generate Report
-    runs-on: ubuntu-latest
-    needs: [ prepare_msk_env ]
-    steps:
-      - name: Checkout Benchmark Code
-        uses: actions/checkout@v3
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20.12.2'
-
-      - name: Install dependencies
-        run: |
-          cd $GITHUB_WORKSPACE/workflow_scripts/js
-          npm install
-
-      ##ref: https://stackoverflow.com/questions/77181212/use-composite-action-output-as-step-output
-      - name: Generate Report in Issue
-        if: ${{ inputs.execute_benchmark || false }}
-        env:
-          BASELINE_COST_AUTOMQ: ${{ needs.prepare_automq_env.outputs.baseline_cost_automq }}
-          USAGE_COST_AUTOMQ: ${{ needs.prepare_automq_env.outputs.usage_cost_automq }}
-          TOTAL_COST_AUTOMQ: ${{ needs.prepare_automq_env.outputs.total_cost_automq }}
-          BASELINE_COST_KAFKA: ${{ needs.prepare_kafka_env.outputs.baseline_cost_kafka }}
-          USAGE_COST_KAFKA: ${{ needs.prepare_kafka_env.outputs.usage_cost_kafka }}
-          TOTAL_COST_KAFKA: ${{ needs.prepare_kafka_env.outputs.total_cost_kafka }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY_NAME: ${{ github.repository }}
-        run: |
-          echo '${{ needs.prepare_automq_env.outputs.benchmark_result_json_automq }}' > $GITHUB_WORKSPACE/workflow_scripts/js/BENCHMARK_RESULT_AUTOMQ.info
-          echo '${{ needs.prepare_kafka_env.outputs.benchmark_result_json_kafka }}' > $GITHUB_WORKSPACE/workflow_scripts/js/BENCHMARK_RESULT_KAFKA.info
-          echo '${{ needs.prepare_automq_env.outputs.extracted_data_automq }}' > $GITHUB_WORKSPACE/workflow_scripts/js/EXTRACTED_DATA_AUTOMQ.info
-          echo '${{ needs.prepare_kafka_env.outputs.extracted_data_kafka }}' > $GITHUB_WORKSPACE/workflow_scripts/js/EXTRACTED_DATA_KAFKA.info
-
-          export WORKSPACE_HOME=$GITHUB_WORKSPACE
-
-          echo "BASELINE_COST_AUTOMQ: $BASELINE_COST_AUTOMQ"
-          echo "USAGE_COST_AUTOMQ: $USAGE_COST_AUTOMQ"
-          echo "TOTAL_COST_AUTOMQ: $TOTAL_COST_AUTOMQ"
-          echo "BASELINE_COST_KAFKA: $BASELINE_COST_KAFKA"
-          echo "USAGE_COST_KAFKA: $USAGE_COST_KAFKA"
-          echo "TOTAL_COST_KAFKA: $TOTAL_COST_KAFKA"
-          echo "GITHUB_TOKEN: [REDACTED]"
-          echo "GITHUB_REPOSITORY_NAME: $GITHUB_REPOSITORY_NAME"
-          cd $GITHUB_WORKSPACE/workflow_scripts/js
-          node $GITHUB_WORKSPACE/workflow_scripts/js/generate_report.js

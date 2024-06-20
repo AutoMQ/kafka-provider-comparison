@@ -1,0 +1,222 @@
+{
+    "partitions": [
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 0,
+            "replicas": [
+                1, 2, 3
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 1,
+            "replicas": [
+                4, 5, 6
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 2,
+            "replicas": [
+                7, 8, 9
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 3,
+            "replicas": [
+                10, 11, 12
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 4,
+            "replicas": [
+                13, 14, 15
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 5,
+            "replicas": [
+                16, 17, 18
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 6,
+            "replicas": [
+                19, 20, 21
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 7,
+            "replicas": [
+                22, 23, 24
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 8,
+            "replicas": [
+                25, 26, 27
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 9,
+            "replicas": [
+                28, 29, 30
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 10,
+            "replicas": [
+                31, 32, 33
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 11,
+            "replicas": [
+                34, 35, 36
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 12,
+            "replicas": [
+                37, 38, 39
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 13,
+            "replicas": [
+                40, 41, 42
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 14,
+            "replicas": [
+                43, 44, 45
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 15,
+            "replicas": [
+                46, 47, 48
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 16,
+            "replicas": [
+                49, 50, 51
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 17,
+            "replicas": [
+                52, 53, 54
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 18,
+            "replicas": [
+                55, 56, 57
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 19,
+            "replicas": [
+                58, 59, 60
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 20,
+            "replicas": [
+                61, 62, 63
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 21,
+            "replicas": [
+                64, 65, 66
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 22,
+            "replicas": [
+                67, 68, 69
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 23,
+            "replicas": [
+                70, 71, 72
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 24,
+            "replicas": [
+                73, 74, 75
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 25,
+            "replicas": [
+                76, 77, 78
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 26,
+            "replicas": [
+                79, 80, 81
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 27,
+            "replicas": [
+                82, 83, 84
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 28,
+            "replicas": [
+                85, 86, 87
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 29,
+            "replicas": [
+                88, 89, 90
+            ]
+        },
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 30,
+            "replicas": [
+                91, 92, 93
+            ]
+        }
+    ],
+    "version": 1
+}

@@ -1,0 +1,14 @@
+{
+    "partitions": [
+        {
+            "topic": "${REASSIGN_TOPIC}",
+            "partition": 0,
+            "replicas": [
+                1
+            ]
+        }
+    ],
+    "version": 1
+}
+
+

@@ -35,6 +35,8 @@ outputs:
     value: ${{ steps.extract_costs.outputs.usage_cost_automq }}
   total_cost_automq:
     value: ${{ steps.extract_costs.outputs.total_cost_automq }}
+  reassign_cost_data_automq:
+    value: ${{ steps.extract_reassign_result.outputs.reassign_cost_data_automq }}
   benchmark_result_json_kafka:
     value: ${{ steps.output_benchmark_result.outputs.benchmark_result_json_kafka }}
   extracted_data_kafka:
@@ -45,6 +47,8 @@ outputs:
     value: ${{ steps.extract_costs.outputs.usage_cost_kafka }}
   total_cost_kafka:
     value: ${{ steps.extract_costs.outputs.total_cost_kafka }}
+  reassign_cost_data_kafka:
+    value: ${{ steps.extract_reassign_result.outputs.reassign_cost_data_kafka }}
 
 runs:
   using: "composite"
@@ -184,6 +188,19 @@ runs:
           extracted_data=$(cat /tmp/extracted_data)
           echo "extracted_data_$STREAMING_PROVIDER<<EOF_MARKER" >> $GITHUB_OUTPUT
           echo "$extracted_data" >> $GITHUB_OUTPUT
+          echo "EOF_MARKER" >> $GITHUB_OUTPUT
+        fi
+      env:
+        STREAMING_PROVIDER: ${{ inputs.streaming_provider }}
+
+    - name: Extract Reassign Time Cost from Benchmark Worker Log
+      shell: bash
+      id: extract_reassign_result
+      run: |
+        if [ "${{ inputs.execute_benchmark }}" = "true" ]; then
+          reassign_cost_data=$(cat /tmp/reassign_cost.log)
+          echo "reassign_cost_data_$STREAMING_PROVIDER<<EOF_MARKER" >> $GITHUB_OUTPUT
+          echo "$reassign_cost_data" >> $GITHUB_OUTPUT
           echo "EOF_MARKER" >> $GITHUB_OUTPUT
         fi
       env:

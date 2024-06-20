@@ -41,6 +41,7 @@ jobs:
       baseline_cost_automq: ${{ steps.shared-automq.outputs.baseline_cost_automq }}
       usage_cost_automq: ${{ steps.shared-automq.outputs.usage_cost_automq }}
       total_cost_automq: ${{ steps.shared-automq.outputs.total_cost_automq }}
+      reassign_cost_data_automq: ${{ steps.shared-automq.outputs.reassign_cost_data_automq }}
     steps:
       - name: Hello World
         run: echo "Hello World"
@@ -160,6 +161,7 @@ jobs:
       baseline_cost_kafka: ${{ steps.shared-kafka.outputs.baseline_cost_kafka }}
       usage_cost_kafka: ${{ steps.shared-kafka.outputs.usage_cost_kafka }}
       total_cost_kafka: ${{ steps.shared-kafka.outputs.total_cost_kafka }}
+      reassign_cost_data_kafka: ${{ steps.shared-kafka.outputs.reassign_cost_data_kafka }}
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'}}
     steps:
       - name: Hello World
@@ -280,6 +282,7 @@ jobs:
       baseline_cost_msk: ${{ steps.shared-msk.outputs.baseline_cost_msk }}
       usage_cost_msk: ${{ steps.shared-msk.outputs.usage_cost_msk }}
       total_cost_msk: ${{ steps.shared-msk.outputs.total_cost_msk }}
+      reassign_cost_data_msk: ${{ steps.shared-msk.outputs.reassign_cost_data_msk }}
     steps:
       - name: Checkout Benchmark Code
         uses: actions/checkout@v3
@@ -406,6 +409,12 @@ jobs:
           BASELINE_COST_MSK: ${{ needs.prepare_msk_env.outputs.baseline_cost_msk }}
           USAGE_COST_MSK: ${{ needs.prepare_msk_env.outputs.usage_cost_msk }}
           TOTAL_COST_MSK: ${{ needs.prepare_msk_env.outputs.total_cost_msk }}
+
+          REASSIGN_COST_AUTOMQ: ${{needs.prepare_automq_env.outputs.reassign_cost_data_automq}}
+          REASSIGN_COST_KAFKA: ${{needs.prepare_kafka_env.outputs.reassign_cost_data_kafka}}
+          REASSIGN_COST_MSK: ${{needs.prepare_msk_env.outputs.reassign_cost_data_msk}}
+
+
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY_NAME: ${{ github.repository }}
         run: |

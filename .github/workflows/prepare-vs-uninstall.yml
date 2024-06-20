@@ -160,7 +160,7 @@ jobs:
       baseline_cost_kafka: ${{ steps.shared-kafka.outputs.baseline_cost_kafka }}
       usage_cost_kafka: ${{ steps.shared-kafka.outputs.usage_cost_kafka }}
       total_cost_kafka: ${{ steps.shared-kafka.outputs.total_cost_kafka }}
-    if: ${{  github.event.workflow_run.conclusion == 'success'  }}
+#    if: ${{  github.event.workflow_run.conclusion == 'success'  }}
     steps:
       - name: Hello World
         run: echo "Hello World"

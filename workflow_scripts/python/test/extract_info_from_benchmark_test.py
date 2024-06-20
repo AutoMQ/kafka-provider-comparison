@@ -15,7 +15,7 @@
 import re
 import json
 
-log_file_path = "debug3.output"
+log_file_path = "debug.output"
 output_file_path = "/tmp/extracted_data"
 
 # Define regex patterns
@@ -25,21 +25,6 @@ workloads_pattern = r'Workloads: \{(.*?)\}'
 # Read log file
 with open(log_file_path, 'r') as file:
     log_content = file.read()
-
-start_traffic_index = log_content.find("Starting benchmark traffic")
-
-if start_traffic_index != -1:
-    end_of_line_index = log_content.find('\n', start_traffic_index)
-    if end_of_line_index != -1:
-        start_index = end_of_line_index + 1
-        log_content = log_content[start_index:]
-    else:
-        print("Reached the end of the line after 'Starting benchmark traffic'.")
-        log_content = log_content[start_traffic_index:]
-else:
-    print("The string 'Starting benchmark traffic' was not found.")
-    sys.exit(1)
-
 
 workloads_match = re.search(workloads_pattern, log_content, re.DOTALL)
 if workloads_match:

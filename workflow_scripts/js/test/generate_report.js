@@ -11,14 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const {Octokit} = require("@octokit/rest");
-
-const repoName = process.env.GITHUB_REPOSITORY_NAME;
-const issue_number = 1; // 这个值应该根据你的需求来设置
-
-const octokit = new Octokit({
-    auth: process.env.GITHUB_TOKEN
-});
+// const {Octokit} = require("@octokit/rest");
+//
+// const repoName = process.env.GITHUB_REPOSITORY_NAME;
+// const issue_number = 1; // 这个值应该根据你的需求来设置
+//
+// const octokit = new Octokit({
+//     auth: process.env.GITHUB_TOKEN
+// });
 
 const fs = require('fs');
 
@@ -35,19 +35,17 @@ const readFileContentSync = (filePath) => {
 const path = require('path');
 
 const readJsonFilesSync = () => {
-    const workspaceHome = process.env.WORKSPACE_HOME;
-    if (!workspaceHome) {
-        throw new Error('Env WORKSPACE_HOME not set');
-    }
+    // 使用 __dirname 获取当前脚本所在的目录
+    const currentDir = __dirname;
 
     const filePaths = [
-        'workflow_scripts/js/BENCHMARK_RESULT_AUTOMQ.info',
-        'workflow_scripts/js/BENCHMARK_RESULT_KAFKA.info',
-        'workflow_scripts/js/EXTRACTED_DATA_AUTOMQ.info',
-        'workflow_scripts/js/EXTRACTED_DATA_KAFKA.info',
-        'workflow_scripts/js/BENCHMARK_RESULT_MSK.info',
-        'workflow_scripts/js/EXTRACTED_DATA_MSK.info'
-    ].map(file => path.join(workspaceHome, file));
+        'BENCHMARK_RESULT_AUTOMQ.info',
+        'BENCHMARK_RESULT_KAFKA.info',
+        'EXTRACTED_DATA_AUTOMQ.info',
+        'EXTRACTED_DATA_KAFKA.info',
+        'BENCHMARK_RESULT_MSK.info',
+        'EXTRACTED_DATA_MSK.info'
+    ].map(file => path.join(currentDir, file)); // 使用当前目录路径
 
 
     return {
@@ -55,7 +53,7 @@ const readJsonFilesSync = () => {
         jsonDataKafka: readFileContentSync(filePaths[1]) ?? {},
         extractedDataAutoMQ: readFileContentSync(filePaths[2]) ?? {},
         extractedDataKafka: readFileContentSync(filePaths[3]) ?? {},
-        jsonDataMSK: readFileContentSync(filePaths[4]) ?? {},
+        jsonDataMSK: readFileContentSync(filePaths[4]) ?? {}, // 添加默认值
         extractedDataMSK: readFileContentSync(filePaths[5]) ?? {}
     };
 };
@@ -209,22 +207,4 @@ const markdownReport = `
   | AWS MSK           | ${average_pub_latency_msk}      |${p99_pub_latency_msk}      |${latencyAvgMSK}      | ${latency95pctMSK}     | ${latency99pctMSK}     | ${baselineCostMSK} | ${usageCostMSK} | ${totalCostMSK} |
 `;
 
-async function generateAndPostReport() {
-    console.log(`Issue Number: ${markdownReport}`);
-
-    const [repoOwnerApi, repoNameApi] = repoName.split('/');
-
-    try {
-        await octokit.rest.issues.createComment({
-            owner: repoOwnerApi,
-            repo: repoNameApi,
-            issue_number: issue_number,
-            body: markdownReport
-        });
-        console.log('Comment created successfully');
-    } catch (error) {
-        console.error('Error creating comment:', error);
-    }
-}
-
-generateAndPostReport();
+console.log(markdownReport)

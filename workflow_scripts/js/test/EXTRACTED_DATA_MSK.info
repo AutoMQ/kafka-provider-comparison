@@ -1,0 +1,33 @@
+{
+    "workload_config": {
+        "name": "1-topic-1000-partitions-4kb-4p4c-500m",
+        "topics": 1,
+        "partitionsPerTopic": 1000,
+        "partitionsPerTopicList": null,
+        "randomTopicNames": true,
+        "keyDistributor": "NO_KEY",
+        "messageSize": 4096,
+        "useRandomizedPayloads": false,
+        "randomBytesRatio": 0.0,
+        "randomizedPayloadPoolSize": 0,
+        "payloadFile": "payload/payload-4Kb.data",
+        "subscriptionsPerTopic": 1,
+        "producersPerTopic": 4,
+        "producersPerTopicList": null,
+        "consumerPerSubscription": 4,
+        "producerRate": 128000,
+        "producerRateList": null,
+        "consumerBacklogSizeGB": 0,
+        "backlogDrainRatio": 1.0,
+        "testDurationMinutes": 1,
+        "warmupDurationMinutes": 0,
+        "logIntervalMillis": 100
+    },
+    "producer_config": "value.serializer=org.apache.kafka.common.serialization.ByteArraySerializer, acks=all, batch.size=65536, bootstrap.servers=10.0.0.47:9092, key.serializer=org.apache.kafka.common.serialization.StringSerializer, linger.ms=1",
+    "consumer_config": "key.deserializer=org.apache.kafka.common.serialization.StringDeserializer, value.deserializer=org.apache.kafka.common.serialization.ByteArrayDeserializer, enable.auto.commit=true, bootstrap.servers=10.0.0.47:9092, auto.offset.reset=earliest",
+    "topic_config": "min.insync.replicas=2, retention.ms=86400000, flush.messages=1",
+    "replication_factor": "3",
+    "average_throughput": 402.06,
+    "average_pub_latency": 223.41,
+    "p99_pub_latency": 662.9
+}

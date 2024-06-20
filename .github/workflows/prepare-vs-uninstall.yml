@@ -35,6 +35,12 @@ jobs:
       CLOUD_PROVIDER: ${{ inputs.cloud_provider || 'aws-cn' }}
       REGION: ${{ inputs.region || 'cn-northwest-1' }}
     if: ${{ github.event.workflow_run.conclusion == 'success'  }}
+    outputs:
+      benchmark_result_json_automq: ${{ steps.shared-automq.outputs.benchmark_result_json_automq }}
+      extracted_data_automq: ${{ steps.shared-automq.outputs.extracted_data_automq }}
+      baseline_cost_automq: ${{ steps.shared-automq.outputs.baseline_cost_automq }}
+      usage_cost_automq: ${{ steps.shared-automq.outputs.usage_cost_automq }}
+      total_cost_automq: ${{ steps.shared-automq.outputs.total_cost_automq }}
     steps:
       - name: Hello World
         run: echo "Hello World"
@@ -148,6 +154,12 @@ jobs:
       STREAMING_PROVIDER: kafka
       CLOUD_PROVIDER: ${{ inputs.cloud_provider || 'aws-cn' }}
       REGION: ${{ inputs.region || 'cn-northwest-1' }}
+    outputs:
+      benchmark_result_json_kafka: ${{ steps.shared-kafka.outputs.benchmark_result_json_kafka }}
+      extracted_data_kafka: ${{ steps.shared-kafka.outputs.extracted_data_kafka }}
+      baseline_cost_kafka: ${{ steps.shared-kafka.outputs.baseline_cost_kafka }}
+      usage_cost_kafka: ${{ steps.shared-kafka.outputs.usage_cost_kafka }}
+      total_cost_kafka: ${{ steps.shared-kafka.outputs.total_cost_kafka }}
     if: ${{  github.event.workflow_run.conclusion == 'success'  }}
     steps:
       - name: Hello World

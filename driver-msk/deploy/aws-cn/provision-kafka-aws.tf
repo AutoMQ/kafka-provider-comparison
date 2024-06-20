@@ -227,16 +227,17 @@ resource "aws_subnet" "subnet_az1" {
     Benchmark = "Kafka_Provider_Comparison_zhaoxiautomq"
   }
 }
-#
-# resource "aws_subnet" "subnet_az2" {
-#   availability_zone       = data.aws_availability_zones.azs.names[1]
-#   cidr_block              = "192.168.1.0/24"
-#   vpc_id                  = aws_vpc.benchmark_vpc.id
-#   map_public_ip_on_launch = true
-#   tags = {
-#     Benchmark = "Kafka_Provider_Comparison_zhaoxiautomq"
-#   }
-# }
+
+// ensure it is in same zone
+resource "aws_subnet" "subnet_az1_2" {
+  availability_zone       = data.aws_availability_zones.azs.names[0]
+  cidr_block              = "192.168.1.0/24"
+  vpc_id                  = aws_vpc.benchmark_vpc.id
+  map_public_ip_on_launch = true
+  tags = {
+    Benchmark = "Kafka_Provider_Comparison_zhaoxiautomq"
+  }
+}
 #
 # resource "aws_subnet" "subnet_az3" {
 #   availability_zone       = data.aws_availability_zones.azs.names[2]
@@ -299,7 +300,7 @@ resource "aws_msk_cluster" "mskcluster" {
     instance_type  = "kafka.m5.xlarge"
     client_subnets = [
       aws_subnet.subnet_az1.id,
-#       aws_subnet.subnet_az2.id,
+      aws_subnet.subnet_az1_2.id,
 #       aws_subnet.subnet_az3.id,
     ]
     storage_info {

@@ -1,10 +1,10 @@
 name: Prepare-Streaming-Cluster-Uninstall
 
 on:
-#  workflow_run:
-#    workflows: [ Prepare-Streaming-Cluster-Benchmark ]
-#    types:
-#      - completed
+  workflow_run:
+    workflows: [ Prepare-Streaming-Cluster-Benchmark ]
+    types:
+      - completed
   workflow_dispatch:
     inputs:
       cloud_provider:

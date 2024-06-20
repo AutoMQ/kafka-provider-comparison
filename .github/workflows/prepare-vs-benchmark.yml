@@ -400,7 +400,7 @@ jobs:
 
       ##ref: https://stackoverflow.com/questions/77181212/use-composite-action-output-as-step-output
       - name: Generate Report in Issue
-        if: ${{ inputs.execute_benchmark || false }}
+        if: ${{ inputs.execute_benchmark || true }}
         env:
           BASELINE_COST_AUTOMQ: ${{ needs.prepare_automq_env.outputs.baseline_cost_automq }}
           USAGE_COST_AUTOMQ: ${{ needs.prepare_automq_env.outputs.usage_cost_automq }}

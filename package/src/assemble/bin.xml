@@ -36,7 +36,8 @@
 			<directory>${basedir}/../payload</directory>
 		</fileSet>
 		<fileSet>
-			<directory>${basedir}/../workflow_scripts</directory>
+			<directory>${basedir}/../workflow_scripts/bin</directory>
+			<fileMode>755</fileMode>
 		</fileSet>
 		<fileSet>
 			<directory>${basedir}/../bin</directory>

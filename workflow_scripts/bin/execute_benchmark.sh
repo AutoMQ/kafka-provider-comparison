@@ -23,6 +23,8 @@ SCP_BASE_CMD="scp -o StrictHostKeyChecking=no -i ~/.ssh/kpc_sshkey"
 SSH_HOST="$(terraform output --raw user)@$(terraform output --raw client_ssh_host)"
 BOOTSTRAP_SERVER="$(terraform output --raw bootstrap_brokers)"
 
+echo "bootstrap is: $BOOTSTRAP_SERVER"
+
 BENCHMARK_DIR="/opt/benchmark"
 
 # Delete old benchmark result files
@@ -31,7 +33,7 @@ $SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/*.json"
 $SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/benchmark-worker.log"
 $SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/workflow_scripts/bin/reassign_cost.log"
 $SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/workflow_scripts/bin/kafka_2.13-3.7.0.tgz"
-$SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/workflow_scripts/bin/kafka_2.13-3.7.0"
+$SSH_BASE_CMD $SSH_HOST "sudo rm -rf $BENCHMARK_DIR/workflow_scripts/bin/kafka_2.13-3.7.0"
 $SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/workflow_scripts/bin/bootstrap-server.txt"
 
 

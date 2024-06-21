@@ -46,9 +46,9 @@ $SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR/workflow_scripts/bin && sudo ./test_r
 
 $SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR/workflow_scripts/bin && sudo wget https://archive.apache.org/dist/kafka/3.7.0/kafka_2.13-3.7.0.tgz"
 
-$SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR/workflow_scripts/bin && tar -zxvf kafka_2.13-3.7.0.tgz"
+$SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR/workflow_scripts/bin && sudo tar -zxvf kafka_2.13-3.7.0.tgz"
 
-$SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR/workflow_scripts/bin && echo $BOOTSTRAP_SERVER >  bootstrap-server.txt"
+$SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR/workflow_scripts/bin && sudo echo $BOOTSTRAP_SERVER >  bootstrap-server.txt"
 
 # Check if new result files have been generated
 TIMEOUT=7200  # 2-hour timeout

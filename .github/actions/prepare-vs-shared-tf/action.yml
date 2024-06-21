@@ -117,13 +117,6 @@ runs:
               ansible-playbook   --user ubuntu -i hosts.ini --inventory `which terraform-inventory` $GITHUB_WORKSPACE/driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}/deploy.yaml 
         fi
 
-    - name: Download Kafka Code For Elasticity Benchmark
-      working-directory: workflow_scripts/bin
-      shell: bash
-      run: |
-        wget https://archive.apache.org/dist/kafka/3.7.0/kafka_2.13-3.7.0.tgz
-        tar -zxvf kafka_2.13-3.7.0.tgz
-
     - name: Execute Benchmark
       working-directory: driver-${{ inputs.streaming_provider }}/deploy/${{ inputs.cloud_provider }}
       shell: bash

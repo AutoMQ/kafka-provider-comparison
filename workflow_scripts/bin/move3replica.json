@@ -3,219 +3,157 @@
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 0,
-            "replicas": [
-                1, 2, 3
-            ]
+            "replicas": [1, 2, 3]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 1,
-            "replicas": [
-                4, 5, 6
-            ]
+            "replicas": [2, 3, 1]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 2,
-            "replicas": [
-                7, 8, 9
-            ]
+            "replicas": [3, 1, 2]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 3,
-            "replicas": [
-                10, 11, 1
-            ]
+            "replicas": [1, 3, 2]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 4,
-            "replicas": [
-                2, 3, 4
-            ]
+            "replicas": [2, 1, 3]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 5,
-            "replicas": [
-                5, 6, 7
-            ]
+            "replicas": [3, 2, 1]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 6,
-            "replicas": [
-                8, 9, 10
-            ]
+            "replicas": [1, 2, 3]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 7,
-            "replicas": [
-                11, 1, 2
-            ]
+            "replicas": [2, 3, 1]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 8,
-            "replicas": [
-                3, 4, 5
-            ]
+            "replicas": [3, 1, 2]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 9,
-            "replicas": [
-                6, 7, 8
-            ]
+            "replicas": [1, 3, 2]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 10,
-            "replicas": [
-                9, 10, 11
-            ]
+            "replicas": [2, 1, 3]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 11,
-            "replicas": [
-                1, 2, 3
-            ]
+            "replicas": [3, 2, 1]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 12,
-            "replicas": [
-                4, 5, 6
-            ]
+            "replicas": [1, 2, 3]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 13,
-            "replicas": [
-                7, 8, 9
-            ]
+            "replicas": [2, 3, 1]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 14,
-            "replicas": [
-                10, 11, 1
-            ]
+            "replicas": [3, 1, 2]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 15,
-            "replicas": [
-                2, 3, 4
-            ]
+            "replicas": [1, 3, 2]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 16,
-            "replicas": [
-                5, 6, 7
-            ]
+            "replicas": [2, 1, 3]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 17,
-            "replicas": [
-                8, 9, 10
-            ]
+            "replicas": [3, 2, 1]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 18,
-            "replicas": [
-                11, 1, 2
-            ]
+            "replicas": [1, 2, 3]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 19,
-            "replicas": [
-                3, 4, 5
-            ]
+            "replicas": [2, 3, 1]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 20,
-            "replicas": [
-                6, 7, 8
-            ]
+            "replicas": [3, 1, 2]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 21,
-            "replicas": [
-                9, 10, 11
-            ]
+            "replicas": [1, 3, 2]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 22,
-            "replicas": [
-                1, 2, 3
-            ]
+            "replicas": [2, 1, 3]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 23,
-            "replicas": [
-                4, 5, 6
-            ]
+            "replicas": [3, 2, 1]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 24,
-            "replicas": [
-                7, 8, 9
-            ]
+            "replicas": [1, 2, 3]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 25,
-            "replicas": [
-                10, 11, 1
-            ]
+            "replicas": [2, 3, 1]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 26,
-            "replicas": [
-                2, 3, 4
-            ]
+            "replicas": [3, 1, 2]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 27,
-            "replicas": [
-                5, 6, 7
-            ]
+            "replicas": [1, 3, 2]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 28,
-            "replicas": [
-                8, 9, 10
-            ]
+            "replicas": [2, 1, 3]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 29,
-            "replicas": [
-                11, 1, 2
-            ]
+            "replicas": [3, 2, 1]
         },
         {
             "topic": "${REASSIGN_TOPIC}",
             "partition": 30,
-            "replicas": [
-                3, 4, 5
-            ]
+            "replicas": [1, 2, 3]
         }
     ],
     "version": 1

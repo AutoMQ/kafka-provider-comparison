@@ -366,6 +366,6 @@ jobs:
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
           ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
           infra_cost_api_key: ${{ secrets.INFRA_COST_API_KEY }}
-          uninstall: ${{ inputs.uninstall || false }}
+          uninstall: ${{ inputs.uninstall || true }}
           execute_benchmark: ${{ inputs.execute_benchmark || false }}
 

@@ -409,6 +409,11 @@ output "user" {
   value = var.user
 }
 
+output "bootstrap_brokers" {
+  value = var.instance_cnt["server"] > 0 ? format("%s:9092", aws_instance.server[0].public_ip) : null
+}
+
+
 output "server_ssh_host" {
   value = var.instance_cnt["server"] > 0 ? aws_instance.server[0].public_ip : null
 }

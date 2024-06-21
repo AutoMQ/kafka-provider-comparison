@@ -37,7 +37,7 @@ $SSH_BASE_CMD $SSH_HOST "sudo rm -rf $BENCHMARK_DIR/workflow_scripts/bin/kafka_2
 $SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/workflow_scripts/bin/bootstrap-server.txt"
 
 
-$SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR/workflow_scripts/bin && sudo echo $BOOTSTRAP_SERVER >  bootstrap-server.txt"
+$SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR/workflow_scripts/bin && sudo echo \"$BOOTSTRAP_SERVER\" >  bootstrap-server.txt"
 
 # Execute the benchmark test
 ## Tips: Pay attention that driver.yaml is under /driver-${STREAMING_PROVIDER}

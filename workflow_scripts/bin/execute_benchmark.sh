@@ -23,7 +23,7 @@ SCP_BASE_CMD="scp -o StrictHostKeyChecking=no -i ~/.ssh/kpc_sshkey"
 SSH_HOST="$(terraform output --raw user)@$(terraform output --raw client_ssh_host)"
 BOOTSTRAP_SERVER="$(terraform output --raw bootstrap_brokers)"
 
-echo "$BOOTSTRAP_SERVER" > bootstrap-server.txt
+echo "bootstrap is: $BOOTSTRAP_SERVER"
 
 BENCHMARK_DIR="/opt/benchmark"
 
@@ -36,7 +36,7 @@ $SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/workflow_scripts/bin/kafka_2.
 $SSH_BASE_CMD $SSH_HOST "sudo rm -rf $BENCHMARK_DIR/workflow_scripts/bin/kafka_2.13-3.7.0"
 $SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/workflow_scripts/bin/bootstrap-server.txt"
 
-$SCP_BASE_CMD bootstrap-server.txt $SSH_HOST:$BENCHMARK_DIR/workflow_scripts/bin
+$SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR/workflow_scripts/bin && sudo echo "$BOOTSTRAP_SERVER"" >  bootstrap-server.txt"
 
 # Execute the benchmark test
 ## Tips: Pay attention that driver.yaml is under /driver-${STREAMING_PROVIDER}

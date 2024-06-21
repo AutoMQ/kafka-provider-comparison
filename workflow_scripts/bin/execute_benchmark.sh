@@ -35,7 +35,7 @@ $SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/workflow_scripts/bin/kafka_2.
 $SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/workflow_scripts/bin/bootstrap-server.txt"
 
 
-
+$SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR/workflow_scripts/bin && sudo echo $BOOTSTRAP_SERVER >  bootstrap-server.txt"
 
 # Execute the benchmark test
 ## Tips: Pay attention that driver.yaml is under /driver-${STREAMING_PROVIDER}
@@ -48,7 +48,7 @@ $SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR/workflow_scripts/bin && sudo wget htt
 
 $SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR/workflow_scripts/bin && sudo tar -zxvf kafka_2.13-3.7.0.tgz"
 
-$SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR/workflow_scripts/bin && sudo echo $BOOTSTRAP_SERVER >  bootstrap-server.txt"
+
 
 # Check if new result files have been generated
 TIMEOUT=7200  # 2-hour timeout

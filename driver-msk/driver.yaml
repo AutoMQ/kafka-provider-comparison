@@ -35,4 +35,4 @@ producerConfig: |
 consumerConfig: |
   auto.offset.reset=earliest
   enable.auto.commit=true
-  client.rack=cn-northwest-1a
+  client.rack=cnnw1-az1

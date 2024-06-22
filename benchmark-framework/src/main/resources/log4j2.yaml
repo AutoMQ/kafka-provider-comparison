@@ -45,10 +45,10 @@ Configuration:
       AppenderRef:
         - ref: Console
         - ref: RollingFile
-    Logger:
-      - name: org.apache.kafka.clients.consumer.internals.Fetcher
-        level: debug
-        additivity: false
-        AppenderRef:
-          - ref: Console
-          - ref: RollingFile
+#    Logger:
+#      - name: org.apache.kafka.clients.consumer.internals.Fetcher
+#        level: debug
+#        additivity: false
+#        AppenderRef:
+#          - ref: Console
+#          - ref: RollingFile

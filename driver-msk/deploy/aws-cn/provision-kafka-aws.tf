@@ -72,7 +72,7 @@ locals {
   subnet_ids = [
     aws_subnet.subnet_az1.id,
     aws_subnet.subnet_az2.id,
-#     aws_subnet.subnet_az3.id
+    aws_subnet.subnet_az3.id
   ]
 }
 
@@ -237,16 +237,16 @@ resource "aws_subnet" "subnet_az2" {
     Benchmark = "Kafka_Provider_Comparison_zhaoxiautomq"
   }
 }
-#
-# resource "aws_subnet" "subnet_az3" {
-#   availability_zone       = data.aws_availability_zones.azs.names[2]
-#   cidr_block              = "192.168.2.0/24"
-#   vpc_id                  = aws_vpc.benchmark_vpc.id
-#   map_public_ip_on_launch = true
-#   tags = {
-#     Benchmark = "Kafka_Provider_Comparison_zhaoxiautomq"
-#   }
-# }
+
+resource "aws_subnet" "subnet_az3" {
+  availability_zone       = data.aws_availability_zones.azs.names[2]
+  cidr_block              = "192.168.2.0/24"
+  vpc_id                  = aws_vpc.benchmark_vpc.id
+  map_public_ip_on_launch = true
+  tags = {
+    Benchmark = "Kafka_Provider_Comparison_zhaoxiautomq"
+  }
+}
 
 
 resource "aws_kms_key" "kms" {
@@ -305,7 +305,7 @@ PROPERTIES
 resource "aws_msk_cluster" "mskcluster" {
   cluster_name           = "mskcluster"
   kafka_version          = "3.7.x.kraft"
-  number_of_broker_nodes = 2
+  number_of_broker_nodes = 3
 
   configuration_info{
     arn = aws_msk_configuration.rackconfig.arn
@@ -317,7 +317,7 @@ resource "aws_msk_cluster" "mskcluster" {
     client_subnets = [
       aws_subnet.subnet_az1.id,
       aws_subnet.subnet_az2.id,
-#       aws_subnet.subnet_az3.id,
+      aws_subnet.subnet_az3.id,
     ]
     storage_info {
       ebs_storage_info {

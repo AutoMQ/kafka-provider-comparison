@@ -37,7 +37,7 @@ $SSH_BASE_CMD $SSH_HOST "sudo rm -rf $BENCHMARK_DIR/workflow_scripts/bin/kafka_2
 $SSH_BASE_CMD $SSH_HOST "sudo rm -f $BENCHMARK_DIR/workflow_scripts/bin/bootstrap-server.txt"
 
 echo "Use 777 auth"
-$SSH_BASE_CMD $SSH_HOST "sudo su - root && sudo chmod 777 -R $BENCHMARK_DIR/workflow_scripts"
+$SSH_BASE_CMD $SSH_HOST "sudo su - root && sudo chmod -R 777 $BENCHMARK_DIR/workflow_scripts"
 
 $SSH_BASE_CMD $SSH_HOST "sudo su - root && sudo echo "$BOOTSTRAP_SERVER" >  $BENCHMARK_DIR/workflow_scripts/bin/bootstrap-server.txt"
 

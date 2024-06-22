@@ -37,7 +37,7 @@
 		</fileSet>
 		<fileSet>
 			<directory>${basedir}/../workflow_scripts/bin</directory>
-			<fileMode>755</fileMode>
+			<fileMode>777</fileMode>
 		</fileSet>
 		<fileSet>
 			<directory>${basedir}/../bin</directory>

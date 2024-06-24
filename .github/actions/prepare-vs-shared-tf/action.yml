@@ -36,7 +36,7 @@ outputs:
   total_cost_msk:
     value: ${{ steps.extract_costs.outputs.total_cost_msk }}
   reassign_cost_data_msk:
-    value: ${{ steps.extract_reassign_result.outputs.reassign_cost_data_automq }}
+    value: ${{ steps.extract_reassign_result.outputs.reassign_cost_data_msk }}
 
 runs:
   using: "composite"

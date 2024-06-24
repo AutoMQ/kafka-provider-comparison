@@ -63,7 +63,7 @@ KPC also supports comparisons of non-open-source Kafka Providers. If your Kafka 
 
 ### Fixed Workload Configuration
 
-To ensure the fairness of the comparison, we have fixed a representative Workload, Producer, and Consumer configuration [tail-read-500m.yaml](workloads/vs/fast-tail-read-500m.yaml). This configuration supports generating a theoretical peak write throughput of 500 MB/s.
+To ensure the fairness of the comparison, we have fixed a representative Workload, Producer, and Consumer configuration [tail-read-100m.yaml](workloads/vs/fast-tail-read-100m.yaml). This configuration supports generating a theoretical peak write throughput of 500 MB/s.
 
 ### Cost Estimation
 

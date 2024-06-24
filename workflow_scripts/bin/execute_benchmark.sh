@@ -42,7 +42,7 @@ $SSH_BASE_CMD $SSH_HOST "sudo su - root && sudo echo "$BOOTSTRAP_SERVER" >  $BEN
 
 # Execute the benchmark test
 ## Tips: Pay attention that driver.yaml is under /driver-${STREAMING_PROVIDER}
-$SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR && sudo ./bin/benchmark -d ./driver-${STREAMING_PROVIDER}/driver.yaml ./workloads/vs/fast-tail-read-500m.yaml"
+$SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR && sudo ./bin/benchmark -d ./driver-${STREAMING_PROVIDER}/driver.yaml ./workloads/vs/fast-tail-read-100m.yaml"
 
 $SSH_BASE_CMD $SSH_HOST "cd $BENCHMARK_DIR/workflow_scripts/bin && sudo wget -q -O kafka_2.13-3.7.0.tgz https://archive.apache.org/dist/kafka/3.7.0/kafka_2.13-3.7.0.tgz"
 

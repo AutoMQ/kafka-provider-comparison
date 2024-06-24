@@ -66,7 +66,7 @@ KPC 也支持没有开源的 Kafka Provider 的对比。如果你的 Kafka Provi
 
 ### 固化的 Workload 配置
 
-为了保证对比的公平性，我们固化了一套比较有代表性的 Workload，Producer、Consumer 配置 [tail-read-500m.yaml](workloads/vs/fast-tail-read-500m.yaml)。该配置支持产生理论峰值 500 MB/s 的写入流量。
+为了保证对比的公平性，我们固化了一套比较有代表性的 Workload，Producer、Consumer 配置 [tail-read-100m.yaml](workloads/vs/fast-tail-read-100m.yaml)。该配置支持产生理论峰值 500 MB/s 的写入流量。
 
 ### 成本估算
 

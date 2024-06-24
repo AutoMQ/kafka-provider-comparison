@@ -322,8 +322,8 @@ resource "aws_msk_cluster" "mskcluster" {
     storage_info {
       ebs_storage_info {
         #  Local retention time must greater than 3days. Ref: https://docs.amazonaws.cn/en_us/msk/latest/developerguide/msk-default-configuration.html
-#         volume_size = 8438
-        volume_size = 50
+        volume_size = 8438
+#         volume_size = 50
 
       }
     }

@@ -202,6 +202,8 @@ const markdownReport = `
   #### replicationFactor
   [AutoMQ] ${replication_factor_automq}
   [Kafka] ${replication_factor_kafka}
+  [MSK] ${replication_factor_kafka}
+  
   #### Average Throughput
   Average Throughput [AutoMQ]: ${average_throughput_automq_new} MB/s
   Average Throughput [Kafka]: ${average_throughput_kafka_new} MB/s

@@ -3,7 +3,9 @@
 
 ## Kafka Provider Comparison
 
-Kafka Provider Comparison (KPC) is a public Kafka comparison platform built on the code of the OpenMessaging Benchmark. The Kafka API has become the de facto standard in the streaming domain. In recent years, many new streaming systems compatible with the Kafka API (hereinafter referred to as Kafka Providers) have emerged. The purpose of building this comparison platform is not to determine the best Kafka streaming system, but to provide a **fair**, **objective**, and **open** comparison environment to generate objective and fair Kafka streaming system comparison reports. The comparison reports will include multiple comparison dimensions, such as latency, cost, elasticity, throughput, and more. Different products have different design architectures and trade-offs, and naturally, they will perform differently in various comparison dimensions. This objective comparison result will be very helpful for users in making technical selections.
+Kafka Provider Comparison (KPC) is a public Kafka comparison platform built on the code of the [OpenMessaging Benchmark](https://github.com/openmessaging/benchmark).
+
+The Kafka API has become the de facto standard in the streaming domain. In recent years, many new streaming systems compatible with the Kafka API (hereinafter referred to as Kafka Providers) have emerged. The purpose of building this comparison platform is not to determine the best Kafka streaming system, but to provide a **fair**, **objective**, and **open** comparison environment to generate objective and fair Kafka streaming system comparison reports. The comparison reports will include multiple comparison dimensions, such as latency, cost, elasticity, throughput, and more. Different products have different design architectures and trade-offs, and naturally, they will perform differently in various comparison dimensions. This objective comparison result will be very helpful for users in making technical selections.
 
 ## Supported Kafka Providers
 
@@ -96,3 +98,8 @@ We plan to trigger the workflow to generate a comparison report every Monday at 
 - Add tests related to Kafka compatibility.
 - More visually appealing and readable comparative reports.
 
+## License
+
+Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
+
+The original works is from the [OpenMessaging Benchmark Framework](https://github.com/openmessaging/benchmark/).

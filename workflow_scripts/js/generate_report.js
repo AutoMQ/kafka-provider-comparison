@@ -213,7 +213,7 @@ const markdownReport = `
 
   
   #### Elasticity
-  Take how many seconds to move 30 partitions from one broker to another broker after write 210 GB data
+  Take how many seconds to move 30 partitions from one broker to another broker after write 210 GB data (100 MB/s for 35 minutes)
   [AutoMQ]: ${reassignCostSecondsAutoMQ} seconds
   [Kafka]: ${reassignCostSecondsKafka} seconds
   [Amazon MSK]: ${reassignCostSecondsMSK} seconds
